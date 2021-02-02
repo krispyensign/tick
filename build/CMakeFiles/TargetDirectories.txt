@@ -1,3 +1,0 @@
-/mnt/c/Users/futra/Workshop/tick/build/CMakeFiles/rebuild_cache.dir
-/mnt/c/Users/futra/Workshop/tick/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/futra/Workshop/tick/build/CMakeFiles/tick.dir
