@@ -1,0 +1,312 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "bin/tick"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"link_directories",
+			"conan_global_flags",
+			"conan_basic_setup",
+			"add_compile_options",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt",
+			"build/conanbuildinfo.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 12,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 10,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 1,
+				"line" : 898,
+				"parent" : 2
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 1397,
+				"parent" : 3
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 1408,
+				"parent" : 3
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 1390,
+				"parent" : 3
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "    "
+				},
+				{
+					"backtrace" : 5,
+					"fragment" : "-DXML_STATIC"
+				},
+				{
+					"backtrace" : 5,
+					"fragment" : "-DPCRE_STATIC=1"
+				},
+				{
+					"backtrace" : 5,
+					"fragment" : "-DPOCO_STATIC=ON"
+				},
+				{
+					"fragment" : "-std=gnu++2a"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/poco/1.9.4/_/_/package/8b4490bc851e1c66c0a44d9243069c16449ee2db/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/pcre/8.41/_/_/package/3c05ae80ec6af4832a765851eea1c86614091d80/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/expat/2.2.10/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/sqlite3/3.33.0/_/_/package/01a8a96da981e1edfc87074a67d005b4b5f9950d/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/openssl/1.1.1h/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/bzip2/1.0.8/_/_/package/da606cf731e334010b0bf6e85a2a6f891b9f36b0/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "/home/so/.conan/data/zlib/1.2.11/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/include"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"id" : "tick::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/poco/1.9.4/_/_/package/8b4490bc851e1c66c0a44d9243069c16449ee2db/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/pcre/8.41/_/_/package/3c05ae80ec6af4832a765851eea1c86614091d80/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/expat/2.2.10/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/sqlite3/3.33.0/_/_/package/01a8a96da981e1edfc87074a67d005b4b5f9950d/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/openssl/1.1.1h/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/bzip2/1.0.8/_/_/package/da606cf731e334010b0bf6e85a2a6f891b9f36b0/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "-L/home/so/.conan/data/zlib/1.2.11/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/home/so/.conan/data/poco/1.9.4/_/_/package/8b4490bc851e1c66c0a44d9243069c16449ee2db/lib:/home/so/.conan/data/pcre/8.41/_/_/package/3c05ae80ec6af4832a765851eea1c86614091d80/lib:/home/so/.conan/data/expat/2.2.10/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/lib:/home/so/.conan/data/sqlite3/3.33.0/_/_/package/01a8a96da981e1edfc87074a67d005b4b5f9950d/lib:/home/so/.conan/data/openssl/1.1.1h/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/lib:/home/so/.conan/data/bzip2/1.0.8/_/_/package/da606cf731e334010b0bf6e85a2a6f891b9f36b0/lib:/home/so/.conan/data/zlib/1.2.11/_/_/package/6af9cc7cb931c5ad942174fd7838eb655717c709/lib",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoZip",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoNetSSL",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoUtil",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoRedis",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoMongoDB",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoDataSQLite",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoNet",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoData",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoXML",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoCrypto",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoEncodings",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoJSON",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lPocoFoundation",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lpcreposix",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lpcre",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lpcre16",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lpcre32",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lexpat",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lsqlite3",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lssl",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lcrypto",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lbz2",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lz",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lrt",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-ldl",
+				"role" : "libraries"
+			},
+			{
+				"fragment" : "-lpthread",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "tick",
+	"nameOnDisk" : "tick",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/main.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}
