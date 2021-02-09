@@ -44,12 +44,14 @@ let get_pairs_list =
   }
 
   // create a doc object and parse the response
-  return fold(json_doc["result"].GetObject(), vector<string>(),
-              [](auto pairs, const auto &ele) {
-                if (ele.value.HasMember("wsname"))
-                  pairs.push_back(ele.value["wsname"].GetString());
-                return pairs;
-              });
+  return fold(
+    json_doc["result"].GetObject(),
+    vector<string>(),
+    [](auto pairs, const auto &ele) {
+      if (ele.value.HasMember("wsname"))
+        pairs.push_back(ele.value["wsname"].GetString());
+      return pairs;
+  });
 };
 
 function main(i16 argc, str argv[])->i16 {
