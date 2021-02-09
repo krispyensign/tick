@@ -48,7 +48,7 @@ typedef char* str;
 
 #pragma region templates
 template <typename CONTAINER, typename NEW_CONTAINER, typename LAMBDA>
-auto fold(CONTAINER container, NEW_CONTAINER new_container, LAMBDA lambda) -> NEW_CONTAINER {
+function fold(CONTAINER container, NEW_CONTAINER new_container, LAMBDA lambda) {
   return accumulate(container.begin(), container.end(), new_container, lambda);
 }
 
@@ -60,7 +60,7 @@ function maplist(CONTAINER&& container, LAMBDA&& lambda) {
 }
 
 template <typename CONTAINER, typename LAMBDA>
-function filter(CONTAINER&& container, LAMBDA&& lambda) -> CONTAINER {
+function filter(CONTAINER&& container, LAMBDA&& lambda) {
     CONTAINER&& w{};
     std::copy_if(container.begin(), container.end(), std::back_inserter(w), lambda);
     return w;
@@ -74,7 +74,7 @@ template <typename T, typename U> function is_a(U u) -> bool {
   return std::holds_alternative<T>(u);
 }
 
-template <typename T, typename U> function get_as(U u) -> T {
+template <typename T, typename U> function get_as(U u) {
   return std::get<T>(u);
 }
 #pragma endregion
