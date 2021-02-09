@@ -1,0 +1,12 @@
+{
+    "diffEditor.codeLens": true,
+    "diffEditor.renderSideBySide": false,
+    "files.eol": "\n",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.semanticHighlighting.enabled": true,
+    "editor.semanticTokenColorCustomizations": {
+        "enabled": true
+    },
+    "clangd.semanticHighlighting": true,
+}
