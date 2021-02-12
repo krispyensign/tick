@@ -30,8 +30,59 @@
 #endif
 
 #define let const auto
-#define letmut auto
+#define mut auto
+#define def auto
 #define function auto
+#define begin {
+#define end }
+#define then {
+#define endif }
+#define doloop {
+#define endloop }
+#define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(__VA_ARGS__, 5,4,3,2,1)
+#define VA_NUM_ARGS_IMPL(_1,_2,_3,_4,_5,N,...) N
+
+#define macro_dispatcher(func, ...) macro_dispatcher_(func, VA_NUM_ARGS(__VA_ARGS__))
+#define macro_dispatcher_(func, nargs) macro_dispatcher__(func, nargs)
+#define macro_dispatcher__(func, nargs) func ## nargs
+
+#define λ(...) macro_dispatcher(λ, __VA_ARGS__)(__VA_ARGS__)
+#define $(...) macro_dispatcher($, __VA_ARGS__)(__VA_ARGS__)
+
+#define λ1(a) [](auto a)
+#define λ2(a, b) [](auto a, auto b)
+#define $1(a) [](auto a)
+#define $2(a, b) [](auto a, auto b)
+
+#define function auto
+#define in :
+
+#define PP_COMMASEQ_N()                                    \
+          1,  1,  1,  1,                                   \
+          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,           \
+          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,           \
+          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,           \
+          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,           \
+          1,  1,  1,  1,  1,  1,  1,  1,  1,  1,           \
+          1,  1,  1,  1,  1,  1,  1,  1,  0,  0
+
+#define PP_COMMA(...)    ,
+
+#define PP_HASCOMMA(...)                                   \
+          PP_NARG_(__VA_ARGS__, PP_COMMASEQ_N())
+
+#define PP_NARG(...)                                       \
+          PP_NARG_HELPER1(                                 \
+              PP_HASCOMMA(__VA_ARGS__),                    \
+              PP_HASCOMMA(PP_COMMA __VA_ARGS__ ()),        \
+              PP_NARG_(__VA_ARGS__, PP_RSEQ_N()))
+
+#define PP_NARG_HELPER1(a, b, N)    PP_NARG_HELPER2(a, b, N)
+#define PP_NARG_HELPER2(a, b, N)    PP_NARG_HELPER3_ ## a ## b(N)
+#define PP_NARG_HELPER3_01(N)    0
+#define PP_NARG_HELPER3_00(N)    1
+#define PP_NARG_HELPER3_11(N)    N
+
 #pragma endregion
 
 #pragma region types
@@ -43,7 +94,7 @@ typedef long long i64;
 typedef unsigned long long u64;
 typedef float f32;
 typedef double f64;
-typedef char* str;
+typedef char* c_str;
 #pragma endregion
 
 #pragma region templates
@@ -66,15 +117,18 @@ function filter(CONTAINER&& container, LAMBDA&& lambda) {
     return w;
 }
 
-template <typename T> function to_string(T t) -> std::string {
+template <typename T>
+function to_string(T t) {
   return std::to_string(t);
 };
 
-template <typename T, typename U> function is_a(U u) -> bool {
+template <typename T, typename U>
+function is_a(U u) {
   return std::holds_alternative<T>(u);
 }
 
-template <typename T, typename U> function get_as(U u) {
+template <typename T, typename U>
+function get_as(U u) {
   return std::get<T>(u);
 }
 #pragma endregion

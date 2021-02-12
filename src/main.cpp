@@ -1,17 +1,21 @@
 #include "common.hpp"
+#include "cpprest/http_client.h"
 
 #pragma region usings
-using std::exception;
+using except = std::exception;
 using std::runtime_error;
-using std::string;
+using str = std::string;
 using std::variant;
 using std::vector;
+
+#define vec vector
+#define var variant
 
 using rapidjson::Document;
 using rapidjson::Value;
 
-using web::http::methods;
-using web::http::status_codes;
+auto &GET = web::http::methods::GET;
+auto &OK =  web::http::status_codes::OK;
 using web::http::client::http_client;
 using web::http::client::http_client_config;
 
@@ -19,49 +23,49 @@ using fmt::format;
 using fmt::print;
 #pragma endregion
 
-let get_pairs_list =
-    [](const string &api_url,
-       const string &assets_path) -> variant<vector<string>, exception> {
-  // get tradeable assets
-  http_client_config config;
+function get_pairs_list(
+  const str& api_url,
+  const str& assets_path
+) -> var<vec<str>, except> begin
+  // disable ssl configs for now
+  mut config = http_client_config();
   config.set_validate_certificates(false);
-  let response =
-      http_client(api_url, config).request(methods::GET, assets_path).get();
 
-  // if not OK then return an  error
-  if (response.status_code() != status_codes::OK)
+  // make the call and get a response back
+  let response = http_client(api_url, config).request(GET, assets_path).get();
+
+  // if not OK then return an error
+  if (response.status_code() not_eq OK) then
     return runtime_error("Returned " + to_string(response.status_code()));
+  end
 
   // extract the text from the response
   let response_text = response.extract_string().get();
 
   // attempt to parse the doc
-  letmut json_doc = Document();
+  mut json_doc = Document();
   json_doc.Parse(response_text.c_str());
-  if (json_doc.HasParseError() || !json_doc.HasMember("result")) {
-    return runtime_error(
-        format("Failed to parse returned document: {}", response_text.c_str()));
-  }
+  if (json_doc.HasParseError() or not json_doc.HasMember("result")) then
+    return runtime_error(format("Failed to parse returned document: {}", response_text.c_str()));
+  end
 
-  // create a doc object and parse the response
-  return fold(
-    json_doc["result"].GetObject(),
-    vector<string>(),
-    [](auto pairs, const auto &ele) {
-      if (ele.value.HasMember("wsname"))
-        pairs.push_back(ele.value["wsname"].GetString());
-      return pairs;
-  });
-};
+  // extract wsname from the doc
+  let obj = json_doc["result"].GetObject();
+  mut pair_list = vec<str>();
+  for (let &pair in obj) begin
+    if (pair.value.HasMember("wsname")) then
+      pair_list.push_back(pair.value["wsname"].GetString());
+    end
+  end
 
-function main(i16 argc, str argv[])->i16 {
+  return pair_list;
+end;
+
+function main(i16 argc, c_str argv[]) -> i16 begin
   let pairResults = get_pairs_list(API_URL, ASSETS_PATH);
-  if (is_a<exception>(pairResults)) {
-    let err = get_as<exception>(pairResults);
-    print(err.what());
-    print("Failed to get instruments\n");
+  if (is_a<except>(pairResults)) then
+    print("Failed to get instruments: {}\n", get_as<except>(pairResults).what());
     return -1;
-  }
-  // print("{}", get_as<vector<string>>(pairResults));
+  end
   return 0;
-}
+end
