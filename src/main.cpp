@@ -3,13 +3,16 @@
 
 #include <algorithm>
 #include <exception>
+#include <initializer_list>
 #include <iterator>
+#include <memory>
+#include <optional>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <variant>
 #include <vector>
-#include <memory>
 
 #include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
@@ -20,15 +23,17 @@
 #include <rapidjson/rapidjson.h>
 
 #include <fmt/core.h>
+#include <fmt/ranges.h>
 
+#include <msgpack.hpp>
 #include <zmq.hpp>
+
 #pragma endregion
 
 #pragma region usings
+using namespace std;
 using except = std::exception;
-using std::runtime_error;
 using str = std::string;
-using std::vector;
 
 using rapidjson::Document;
 using rapidjson::Value;
@@ -42,33 +47,61 @@ using web::websockets::client::websocket_callback_client;
 using web::websockets::client::websocket_incoming_message;
 
 using fmt::format;
+using fmt::join;
 using fmt::print;
 
 using zmq::context_t;
+using zmq::message_t;
 using zmq::socket_t;
+
+using std::stringstream;
 #pragma endregion
 
 #pragma region helpers
-#define vec vector
+#define vec std::vector
 #define var std::variant
-#define publisher zmq::socket_type::pub
-
+#define dontwait zmq::send_flags::dontwait
 #pragma endregion
 
 #pragma region dsl
-#define lparen (
-#define rparen )
-#define lbrace {
-#define rbrace }
-#define if if lparen
-#define for for lparen
-#define then rparen lbrace
-#define doloop rparen lbrace
-#define endif rbrace
-#define endfor rbrace
+// #define lparen (
+// #define rparen )
+// #define lbrace {
+// #define rbrace }
+// #define if if lparen
+// #define for for lparen
+// #define then rparen lbrace
+// #define doloop rparen lbrace
+// #define endif rbrace
+// #define endfor rbrace
 #define in :
-#define ne not_eq
+// #define ne not_eq
 #pragma endregion
+
+#pragma region types
+struct pack_encoder {
+  template <typename T> def encode(T t)->str {
+    mut buffer = str();
+    msgpack::pack(buffer, t);
+    return buffer;
+  }
+};
+
+class publisher {
+private:
+  zmq::socket_t sock;
+
+public:
+  publisher(context_t &ctx) { sock = zmq::socket_t(ctx, zmq::socket_type::pub); }
+
+  template <typename T> def bind(T t)->void { sock.bind(t); }
+
+  def send(const vec<str> &envelope)->void {
+    mut msg = zmq::message_t(fmt::format("{}", fmt::join(envelope, " ")));
+    sock.send(msg, dontwait);
+  };
+};
+
 struct tick_sub_req {
   str event;
   vec<str> pairs;
@@ -78,36 +111,39 @@ struct tick_sub_req {
 };
 
 struct micro_service {
-  socket_t ticker_z;
+  optional<publisher> ticker_z;
   websocket_callback_client ticker_ws;
-  context_t context_z = context_t();
+  context_t context_z;
   bool is_running = false;
   int tick_count = 0;
+  pack_encoder encoder;
   struct {
     str zbind;
     str ws_uri;
   } config;
 };
-typedef std::shared_ptr<micro_service> MicroService;
+typedef shared_ptr<micro_service> MicroService;
 
 struct pair_price_update {
   str trade_name;
   double ask;
   double bid;
 };
+#pragma endregion
 
-let create_tick_sub_request = $(vec<str>& pairs) -> tick_sub_req {
+#pragma region kraken_helpers
+let create_tick_sub_request = $(vec<str> & pairs)->tick_sub_req {
   return {
-    .event = "subscribe",
-    .pairs = pairs,
-    .subscription = {
-      .name = "ticker",
-    },
+      .event = "subscribe",
+      .pairs = pairs,
+      .subscription =
+          {
+              .name = "ticker",
+          },
   };
 };
 
-
-let get_pairs_list = $(str& api_url, str& assets_path) -> var<vec<str>, except> {
+let get_pairs_list = $(str & api_url, str &assets_path)->var<vec<str>, except> {
   // disable ssl configs for now
   mut config = http_client_config();
   config.set_validate_certificates(false);
@@ -116,9 +152,8 @@ let get_pairs_list = $(str& api_url, str& assets_path) -> var<vec<str>, except> 
   let response = http_client(api_url, config).request(GET, assets_path).get();
 
   // if not OK then return an error
-  if response.status_code() not_eq OK then
+  if (response.status_code() != OK)
     return runtime_error("Returned " + to_string(response.status_code()));
-  endif
 
   // extract the text from the response
   let response_text = response.extract_string().get();
@@ -126,107 +161,106 @@ let get_pairs_list = $(str& api_url, str& assets_path) -> var<vec<str>, except> 
   // attempt to parse the doc
   mut json_doc = Document();
   json_doc.Parse(response_text.c_str());
-  if json_doc.HasParseError() or not json_doc.HasMember("result") then
-    return runtime_error(format("Failed to parse returned document: {}", response_text.c_str()));
-  endif
+  if (json_doc.HasParseError() || !json_doc.HasMember("result"))
+    return runtime_error(
+        format("Failed to parse returned document: {}", response_text.c_str()));
 
   // extract wsnames from the doc
   let obj = json_doc["result"].GetObject();
   mut pair_list = vec<str>();
-  for let& pair in obj doloop
-    if pair.value.HasMember("wsname") then
+  for (let &pair in obj)
+    if (pair.value.HasMember("wsname"))
       pair_list.push_back(pair.value["wsname"].GetString());
-    endif
-  endfor
 
   return pair_list;
 };
 
-let is_ticker = $(Value& json) -> bool {
+let is_ticker = $(Value & json)->bool {
   // validate the payload has the following fields
   let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
   // check each member in the requried members list
-  for let& memb in required_members doloop
+  for (let &memb in required_members)
     // break if its missing any of them
-    if not json.HasMember(memb) then
+    if (!json.HasMember(memb))
       return false;
-    endif
-  endfor
 
   return true;
 };
 
-let parse_event = $(str& msg_data) -> var<pair_price_update, except> {
+let parse_event = $(str & msg_data)->var<pair_price_update, except> {
   mut msg = Document();
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
-  if msg.HasParseError() or msg.HasMember("errorMessage") then
+  if (msg.HasParseError() || msg.HasMember("errorMessage"))
     return runtime_error(msg["errorMessage"].GetString());
-  endif
 
-  // validate it is a kraken publication type.  all kraken publications are arrays of size 4
-  if msg.Size() not_eq 4 then
+  // validate it is a kraken publication type.  all kraken publications are
+  // arrays of size 4
+  if (msg.Size() != 4)
     return runtime_error("Not a publication");
-  endif
 
   // get the payload of the publication
   let payload = msg[1].GetObject();
 
   // validate the payload is a tick object
-  if not is_ticker(payload) then
+  if (!is_ticker(payload))
     return runtime_error("Payload is not a tick");
-  endif
 
   // get the pair name of the publication
   let pair = msg[3].GetString();
 
   // construct a neutral format for the price update event
-  return pair_price_update {
-    .trade_name = pair,
-    .ask = payload["a"][0].GetDouble(),
-    .bid = payload["b"][0].GetDouble(),
+  return pair_price_update{
+      .trade_name = pair,
+      .ask = payload["a"][0].GetDouble(),
+      .bid = payload["b"][0].GetDouble(),
   };
 };
+#pragma endregion
 
-let process_tick = $(str& msg, MicroService ms) -> bool {
+#pragma region tick_service
+let process_tick = $(str & msg, MicroService ms)->bool {
   // short-circuit if shutting down
-  if not ms->is_running then
+  if (!ms->is_running)
     return false;
-  endif
 
   // attempt to parse the event
-  let event = parse_event(msg);
+  let event_result = parse_event(msg);
 
   // log then eat any errors
-  if is_a<except>(event) then
-    print(get_as<except>(event).what());
+  if (is_a<except>(event_result)) {
+    print(get_as<except>(event_result).what());
     return false;
-  endif
-
+  }
+  let event = get_as<pair_price_update>(event_result);
 
   // log healthy after 4 good ticks
   ms->tick_count++;
-  if ms->tick_count == 4 then
+  if (ms->tick_count == 4)
     print("Ticker is healthy.  Waiting on shutdown.");
-  endif
+
+  // pack it up and send it
+  ms->ticker_z->send({ms->encoder.encode(event)});
 
   return true;
 };
 
-let tick_service = $(MicroService ms) -> i16 {
+let tick_service = $(MicroService ms)->i16 {
   let pairResults = get_pairs_list(API_URL, ASSETS_PATH);
-  ms->ticker_z = socket_t(ms->context_z, publisher);
-  ms->ticker_z.bind(ms->config.zbind);
+  ms->context_z = context_t(1);
+  ms->ticker_z = publisher(ms->context_z);
+  ms->ticker_z->bind(ms->config.zbind);
   ms->ticker_ws.connect(ms->config.ws_uri).get();
   ms->ticker_ws.set_message_handler([ms](websocket_incoming_message msg) {
     process_tick(msg.extract_string().get(), ms);
   });
   return 0;
 };
+#pragma endregion
 
-def main(i16 argc, c_str argv[]) -> i16 {
-  let ms = std::make_shared<micro_service>();
+def main(i16 argc, c_str argv[])->i16 {
+  let ms = make_shared<micro_service>();
   return tick_service(ms);
 }
