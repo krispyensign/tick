@@ -1,7 +1,6 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
 
-#include "types.hpp"
 #include "kraken.hpp"
 
 let process_tick = $(MicroService ms, str& msg) -> bool {
