@@ -17,7 +17,7 @@
 #include <vector>
 #pragma endregion
 
-#pragma third_party_includes
+#pragma region third_party_includes
 #include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
 #include <cpprest/ws_client.h>

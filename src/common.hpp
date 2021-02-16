@@ -21,9 +21,6 @@
 #define macro_dispatcher(func, ...) macro_dispatcher_(func, VA_NUM_ARGS(__VA_ARGS__))
 #define macro_dispatcher_(func, nargs) macro_dispatcher__(func, nargs)
 #define macro_dispatcher__(func, nargs) func ## nargs
-#define λ(...) macro_dispatcher(λ, __VA_ARGS__)(__VA_ARGS__)
-#define λ1(a) [](auto a)
-#define λ2(a, b) [](auto a, auto b)
 #define $(...) macro_dispatcher($, __VA_ARGS__)(__VA_ARGS__)
 #define $1(a) [](const a)
 #define $2(a, b) [](const a, const b)
@@ -57,19 +54,19 @@
 
 #pragma region templates
 template <typename CONTAINER, typename NEW_CONTAINER, typename LAMBDA>
-def fold(CONTAINER container, NEW_CONTAINER new_container, LAMBDA lambda) {
+auto fold(CONTAINER container, NEW_CONTAINER new_container, LAMBDA lambda) -> NEW_CONTAINER {
   return std::accumulate(container.begin(), container.end(), new_container, lambda);
 }
 
 template<typename CONTAINER, typename LAMBDA>
-def maplist(CONTAINER&& container, LAMBDA&& lambda) {
+auto maplist(CONTAINER&& container, LAMBDA&& lambda) -> std::vector<decltype(lambda(*container.begin()))>{
       std::vector<decltype(lambda(*container.begin()))> w;
       std::transform(container.begin(),container.end(),back_inserter(w), lambda);
       return w;
 }
 
 template <typename CONTAINER, typename LAMBDA>
-def filter(CONTAINER&& container, LAMBDA&& lambda) {
+auto filter(CONTAINER&& container, LAMBDA&& lambda) -> CONTAINER&& {
     CONTAINER&& w{};
     std::copy_if(container.begin(), container.end(), back_inserter(w), lambda);
     return w;
