@@ -62,31 +62,6 @@ namespace zmq {
   using socket = zmq::socket_t;
 } // namespace zmq
 
-struct pack_encoder {
-  template <typename T> def encode(T t)->str {
-    mut buffer = str();
-    msgpack::pack(buffer, t);
-    return buffer;
-  }
-};
-
-class publisher {
-private:
-  zmq::socket_t sock;
-
-public:
-  publisher(zmq::context &ctx) {
-    sock = zmq::socket(ctx, zmq::socket_type::pub);
-  }
-
-  template <typename T> def bind(T t)->void { sock.bind(t); }
-
-  def send(const vec<str> &envelope)->void {
-    mut msg = zmq::message(fmt::format("{}", fmt::join(envelope, " ")));
-    sock.send(msg, zmq::send_flags::dontwait);
-  };
-};
-
 struct tick_sub_req {
   str event;
   vec<str> pairs;
@@ -96,12 +71,13 @@ struct tick_sub_req {
 };
 
 struct micro_service {
-  optional<publisher> ticker_z;
+  zmq::socket ticker_z;
   rest::websocket ticker_ws;
   zmq::context context_z;
   bool is_running = false;
-  int tick_count = 0;
-  pack_encoder encoder;
+  struct {
+    int tick_count = 0;
+  } state;
   struct {
     str zbind;
     str ws_uri;
