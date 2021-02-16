@@ -6,7 +6,7 @@
 
 let process_tick = $(MicroService ms, str &msg)->bool {
   // short-circuit if shutting down
-  if (!ms->is_running)
+  if (!ms->state.is_running)
     return false;
 
   // attempt to parse the event

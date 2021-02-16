@@ -2,6 +2,7 @@
 #define kraken_hpp
 
 #include "types.hpp"
+#include <stdexcept>
 
 let api_url = "https://api.kraken.com";
 let assets_path = "/0/public/AssetPairs";
@@ -26,16 +27,16 @@ let get_pairs_list = $(str& api_url, str& assets_path) -> var<vec<str>, exceptio
 
   // if not OK then return an error
   if (response.status_code() != rest::status_codes::OK)
-    return runtime_error("Returned " + to_string(response.status_code()));
+    return error("Returned " + to_string(response.status_code()));
 
   // extract the text from the response
   let response_text = response.extract_string().get();
 
   // attempt to parse the doc
-  mut json_doc = rapidjson::Document();
+  mut json_doc = json::Document();
   json_doc.Parse(response_text.c_str());
   if (json_doc.HasParseError() || !json_doc.HasMember("result"))
-    return runtime_error(fmt::format("Failed to parse returned document: {}", response_text.c_str()));
+    return error(fmt::format("Failed to parse returned document: {}", response_text.c_str()));
 
   // extract wsnames from the doc
   let obj = json_doc["result"].GetObject();
@@ -47,7 +48,7 @@ let get_pairs_list = $(str& api_url, str& assets_path) -> var<vec<str>, exceptio
   return pair_list;
 };
 
-let is_ticker = $(rapidjson::Value& json) -> bool {
+let is_ticker = $(json::Value& json) -> bool {
   // validate the payload has the following fields
   let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
@@ -58,20 +59,20 @@ let is_ticker = $(rapidjson::Value& json) -> bool {
 };
 
 let parse_event = $(str& msg_data) -> var<pair_price_update, exception> {
-  mut msg = rapidjson::Document();
+  mut msg = json::Document();
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
-  if (msg.HasParseError() || msg.HasMember("errorMessage")) return runtime_error(msg["errorMessage"].GetString());
+  if (msg.HasParseError() || msg.HasMember("errorMessage")) return error(msg["errorMessage"].GetString());
 
   // validate it is a kraken publication type.  all kraken publications are arrays of size 4
-  if (msg.Size() != 4) return runtime_error("Not a publication");
+  if (msg.Size() != 4) return error("Not a publication");
 
   // get the payload of the publication
   let payload = msg[1].GetObject();
 
   // validate the payload is a tick object
-  if (!is_ticker(payload)) return runtime_error("Payload is not a tick");
+  if (!is_ticker(payload)) return error("Payload is not a tick");
 
   // construct a neutral format for the price update event
   return pair_price_update{

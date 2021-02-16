@@ -30,8 +30,6 @@
 #include <zmq.hpp>
 #pragma endregion
 
-using namespace std;
-
 #define vec std::vector
 #define var std::variant
 
@@ -46,9 +44,17 @@ typedef double f64;
 typedef char *c_str;
 typedef std::string str;
 
+using namespace std;
+
+using error = std::runtime_error;
+
+namespace json {
+  using namespace rapidjson;
+}
+
 namespace rest {
-  using web::http::methods;
-  using web::http::status_codes;
+  using methods = web::http::methods;
+  using status_codes = web::http::status_codes;
   using client = web::http::client::http_client;
   using client_config = web::http::client::http_client_config;
 
@@ -74,9 +80,9 @@ struct micro_service {
   zmq::socket ticker_z;
   rest::websocket ticker_ws;
   zmq::context context_z;
-  bool is_running = false;
   struct {
     int tick_count = 0;
+    bool is_running = false;
   } state;
   struct {
     str zbind;
@@ -85,8 +91,7 @@ struct micro_service {
 };
 typedef shared_ptr<micro_service> MicroService;
 
-class pair_price_update {
-public:
+struct pair_price_update {
   str trade_name;
   double ask;
   double bid;
