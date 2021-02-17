@@ -29,6 +29,7 @@ let process_tick = $(MicroService ms, str& msg) -> bool {
 };
 
 let tick_service = $(MicroService ms) -> i16 {
+  // attempt to get the available pairs for websocket subscription
   let pairResults = get_pairs_list(api_url, assets_path);
   ms->context_z = zmq::context(1);
   ms->ticker_z = zmq::socket(ms->context_z, zmq::socket_type::pub);
