@@ -1,20 +1,15 @@
-#ifndef common_hpp
-#define common_hpp
+#ifndef common
+#define common
 
 #pragma region includes
 #include <algorithm>
 #include <string>
 #include <variant>
 #include <vector>
-#include <utility>
 #include <numeric>
 #pragma endregion
 
 #pragma region macros
-
-#define let const auto
-#define mut auto
-#define def auto
 
 #define VA_NUM_ARGS(...) VA_NUM_ARGS_IMPL(__VA_ARGS__, 5,4,3,2,1)
 #define VA_NUM_ARGS_IMPL(_1,_2,_3,_4,_5,N,...) N
@@ -24,6 +19,11 @@
 #define $(...) macro_dispatcher($, __VA_ARGS__)(__VA_ARGS__)
 #define $1(a) [](const a)
 #define $2(a, b) [](const a, const b)
+#define $3(a, b, c) [](const a, const b, const c)
+#define $$(...) macro_dispatcher($$, __VA_ARGS__)(__VA_ARGS__)
+#define $$1(a) [=](const a)
+#define $$2(a, b) [=](const a, const b)
+#define $$3(a, b, c) [=](const a, const b, const c)
 
 #define PP_COMMASEQ_N()                                    \
           1,  1,  1,  1,                                   \
@@ -53,6 +53,15 @@
 #pragma endregion
 
 #pragma region templates
+// helper type for the visitor #4
+template<class... Ts> struct exhaustive : Ts... { using Ts::operator()...; };
+// explicit deduction guide (not needed as of C++20)
+template<class... Ts> exhaustive(Ts...) -> exhaustive<Ts...>;
+
+template<class... Ts> auto type_match(auto&& arg, exhaustive<Ts...> matcher) {
+  return std::visit(matcher, arg);
+}
+
 template <typename CONTAINER, typename NEW_CONTAINER, typename LAMBDA>
 auto fold(CONTAINER container, NEW_CONTAINER new_container, LAMBDA lambda) -> NEW_CONTAINER {
   return std::accumulate(container.begin(), container.end(), new_container, lambda);
