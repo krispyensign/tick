@@ -32,6 +32,7 @@
 #define let const auto
 #define mut auto
 #define def auto
+#define in :
 
 #define vec std::vector
 #define var std::variant

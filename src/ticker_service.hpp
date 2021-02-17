@@ -37,7 +37,7 @@ let tick_service = $(MicroService ms) -> i16 {
   ms->ticker_ws.connect(ms->config.ws_uri).get();
   //TODO: create subscription message
   ms->ticker_ws.set_message_handler(
-    $$(rest::websocket_message msg) { process_tick(ms, msg.extract_string().get()); });
+    $$(rest::websocket_message msg) -> void { process_tick(ms, msg.extract_string().get()); });
   return 0;
 };
 

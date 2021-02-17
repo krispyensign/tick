@@ -40,7 +40,7 @@ let get_pairs_list = $(str& api_url, str& assets_path) -> var<vec<str>, exceptio
   // extract wsnames from the doc
   let obj = json_doc["result"].GetObject();
   mut pair_list = vec<str>();
-  for (let &pair : obj)
+  for (let &pair in obj)
     if (pair.value.HasMember("wsname")) pair_list.push_back(pair.value["wsname"].GetString());
 
   return pair_list;
@@ -51,7 +51,7 @@ let is_ticker = $(json::Value& json) -> bool {
   let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
   // check each member in the requried members list
-  for (let &memb : required_members)
+  for (let &memb in required_members)
     if (not json.HasMember(memb)) return false;
 
   return true;
