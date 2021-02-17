@@ -25,7 +25,8 @@ let process_tick = $(MicroService ms, str& msg) -> bool {
     $$(pair_price_update p) -> bool { return send_tick(ms, p); },
 
     // else log then eat the exception
-    $(exception e) -> bool { fmt::print(e.what()); return false; }});
+    $(exception e) -> bool { fmt::print(e.what()); return false; }
+  });
 };
 
 let tick_service = $(MicroService ms) -> i16 {
@@ -36,6 +37,10 @@ let tick_service = $(MicroService ms) -> i16 {
   ms->ticker_z.bind(ms->config.zbind);
   ms->ticker_ws.connect(ms->config.ws_uri).get();
   //TODO: create subscription message
+  //TODO: add main argument parser
+  //TODO: add sigint handler
+  //TODO: add logger
+  //TODO: add stacktracing
   ms->ticker_ws.set_message_handler(
     $$(rest::websocket_message msg) -> void { process_tick(ms, msg.extract_string().get()); });
   return 0;
