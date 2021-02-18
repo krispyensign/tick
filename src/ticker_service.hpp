@@ -6,7 +6,7 @@
 let send_tick = $(MicroService ms, pair_price_update& event) -> bool {
   // log healthy after 4 good ticks
   ms->state.tick_count++;
-  if (ms->state.tick_count == 4) fmt::print("Ticker is healthy.  Waiting on shutdown.");
+  if (ms->state.tick_count == 4) fmt::print("Ticker is healthy. Waiting on shutdown.");
 
   // pack it up and send it
   mut buf = stringstream();
@@ -20,13 +20,15 @@ let process_tick = $(MicroService ms, str& msg) -> bool {
   if (not ms->state.is_running) return false;
 
   // parse and dispatch result
-  return type_match(parse_event(msg), exhaustive {
+  return type_switch(parse_event(msg),
     // if it's a valid event then queue
-    $$(pair_price_update p) -> bool { return send_tick(ms, p); },
+    (pair_price_update p) { return send_tick(ms, p); },
 
     // else log then eat the exception
-    $(exception e) -> bool { fmt::print(e.what()); return false; }
-  });
+    (exception e) {
+      fmt::print(e.what());
+      return false;
+    });
 };
 
 let tick_service = $(MicroService ms) -> i16 {
@@ -36,13 +38,13 @@ let tick_service = $(MicroService ms) -> i16 {
   ms->ticker_z = zmq::socket(ms->context_z, zmq::socket_type::pub);
   ms->ticker_z.bind(ms->config.zbind);
   ms->ticker_ws.connect(ms->config.ws_uri).get();
-  //TODO: create subscription message
-  //TODO: add main argument parser
-  //TODO: add sigint handler
-  //TODO: add logger
-  //TODO: add stacktracing
+  // TODO: create subscription message
+  // TODO: add main argument parser
+  // TODO: add sigint handler
+  // TODO: add logger
+  // TODO: add stacktracing
   ms->ticker_ws.set_message_handler(
-    $$(rest::websocket_message msg) -> void { process_tick(ms, msg.extract_string().get()); });
+    $$(rest::websocket_message msg) { process_tick(ms, msg.extract_string().get()); });
   return 0;
 };
 
