@@ -18,14 +18,13 @@ let send_tick = $(MicroService ms, pair_price_update& event) -> bool {
 let process_tick = $(MicroService ms, str& msg) -> bool {
   // short-circuit if shutting down
   if (not ms->state.is_running) return false;
-
   // parse and dispatch result
-  return type_switch(parse_event(msg),
+  return type_match(parse_event(msg),
     // if it's a valid event then queue
-    (pair_price_update p) { return send_tick(ms, p); },
+    $$(pair_price_update p) { return send_tick(ms, p); },
 
     // else log then eat the exception
-    (exception e) {
+    $$(exception e) {
       fmt::print(e.what());
       return false;
     });

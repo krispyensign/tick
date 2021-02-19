@@ -27,8 +27,6 @@
 #include <zmq.hpp>
 #pragma endregion
 
-#include "common.hpp"
-
 #define let const auto
 #define mut auto
 #define def auto
