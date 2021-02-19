@@ -24,9 +24,7 @@ struct exhaustive : Ts... {
 template<typename T>
 struct type_switch {
   T data;
-  type_switch(T tin) {
-    data = tin;
-  }
+  type_switch(T tin) : data(tin) {}
   template<typename... Funcs>
   auto operator() (Funcs... funcs) {
     return type_match(data, funcs...);
@@ -46,7 +44,7 @@ struct result : public variant<T, exception> {
 
   auto unwrap() -> T {
     if(holds_alternative<exception>(this)) {
-      throw get<exception>(this).what();
+      throw get<exception>(this);
     }
     return get<T>(this);
   }

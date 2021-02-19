@@ -27,6 +27,7 @@
 #include <zmq.hpp>
 #pragma endregion
 
+#pragma region dsl
 #define let const auto
 #define mut auto
 #define def auto
@@ -34,7 +35,9 @@
 
 #define vec std::vector
 #define var std::variant
+#pragma endregion
 
+#pragma region base_type_aliases
 typedef int i16;
 typedef unsigned int u16;
 typedef long i32;
@@ -45,10 +48,12 @@ typedef float f32;
 typedef double f64;
 typedef char *c_str;
 typedef std::string str;
+#pragma endregion
 
-using namespace std;
 
+#pragma region namespace_aliases
 using error = std::runtime_error;
+using namespace std;
 
 namespace json {
 using namespace rapidjson;
@@ -71,7 +76,9 @@ using context = zmq::context_t;
 using message = zmq::message_t;
 using socket = zmq::socket_t;
 }  // namespace zmq
+#pragma endregion
 
+#pragma region structs
 struct tick_sub_req {
   str event;
   vec<str> pairs;
@@ -90,20 +97,15 @@ struct tick_sub_req {
   }
 };
 
-struct micro_service {
-  zmq::socket ticker_z;
-  rest::websocket ticker_ws;
-  zmq::context context_z;
-  struct {
-    int tick_count = 0;
-    bool is_running = false;
-  } state;
-  struct {
+struct config {
     str zbind;
     str ws_uri;
-  } config;
 };
-typedef shared_ptr<micro_service> MicroService;
+
+struct state {
+    int tick_count = 0;
+    bool is_running = false;
+};
 
 struct pair_price_update {
   str trade_name;
@@ -112,6 +114,12 @@ struct pair_price_update {
   MSGPACK_DEFINE(trade_name, ask, bid);
 };
 
+#pragma endregion
 
+#pragma region other_aliases
+typedef shared_ptr<rest::websocket> WebSocket;
+typedef shared_ptr<zmq::socket> ZSocket;
+typedef shared_ptr<state> ServiceState;
+#pragma endregion
 
 #endif
