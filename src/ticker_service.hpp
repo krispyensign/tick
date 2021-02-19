@@ -1,7 +1,6 @@
 #ifndef ticker_service
 #define ticker_service
 
-#include <exception>
 #include "kraken.hpp"
 
 let send_tick = $(MicroService ms, pair_price_update& event) -> bool {
