@@ -1,6 +1,5 @@
 #ifndef templates
 #define templates
-#include "types.hpp"
 #pragma region includes
 #include <initializer_list>
 #include <algorithm>
@@ -8,6 +7,8 @@
 #include <variant>
 #include <vector>
 #include <numeric>
+
+using namespace std;
 
 #pragma endregion
 #pragma region type-helpers
@@ -20,10 +21,36 @@ struct exhaustive : Ts... {
   exhaustive(const Ts&... ts) : Ts{ts}... {};
 };
 
+template<typename T>
+struct type_switch {
+  T data;
+  type_switch(T tin) {
+    data = tin;
+  }
+  template<typename... Funcs>
+  auto operator() (Funcs... funcs) {
+    return type_match(data, funcs...);
+  }
+};
+
 template<typename A, typename... Funcs>
 auto type_match(A arg, Funcs... funcs) {
   return std::visit(exhaustive{funcs... }, arg);
 }
+
+template<typename T>
+struct result : public variant<T, exception> {
+  result(T tin) : variant<T, exception>(tin) {}
+  result(exception ein) : variant<T, exception>(ein) {}
+  result(variant<T, exception> data) : variant<T, exception>{data} {}
+
+  auto unwrap() -> T {
+    if(holds_alternative<exception>(this)) {
+      throw get<exception>(this).what();
+    }
+    return get<T>(this);
+  }
+};
 #pragma endregion
 
 #pragma region higher order functions

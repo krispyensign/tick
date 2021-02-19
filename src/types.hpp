@@ -59,9 +59,11 @@ using methods = web::http::methods;
 using status_codes = web::http::status_codes;
 using client = web::http::client::http_client;
 using client_config = web::http::client::http_client_config;
+using response = web::http::http_response;
 
 using websocket = web::websockets::client::websocket_callback_client;
 using websocket_message = web::websockets::client::websocket_incoming_message;
+using websocket_out_message = web::websockets::client::websocket_outgoing_message;
 }  // namespace rest
 
 namespace zmq {
@@ -76,6 +78,16 @@ struct tick_sub_req {
   struct {
     str name;
   } subscription;
+  def serialize() -> str {
+    return fmt::format(R"EOF(
+      {
+        "event":{},
+        "pairs":{},
+        "subscription":{
+          "name": {}
+        }
+      })EOF", event, pairs, subscription.name);
+  }
 };
 
 struct micro_service {
