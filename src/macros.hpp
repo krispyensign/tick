@@ -16,6 +16,9 @@
 #define $$1(a) [=](const a)
 #define $$2(a, b) [=](const a, const b)
 #define $$3(a, b, c) [=](const a, const b, const c)
+#define typeswitch(...) macro_dispatcher(typeswitch, __VA_ARGS__)(__VA_ARGS__)
+#define typeswitch2(a, b) type_match(a, [=]b)
+#define typeswitch3(a, b, c) type_match(a, [=]b, [=]c)
 
 #define PP_COMMASEQ_N()                                    \
           1,  1,  1,  1,                                   \

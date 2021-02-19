@@ -1,13 +1,13 @@
 #ifndef ticker_service
 #define ticker_service
 
+#include <exception>
 #include "kraken.hpp"
 
 let send_tick = $(MicroService ms, pair_price_update& event) -> bool {
   // log healthy after 4 good ticks
   ms->state.tick_count++;
   if (ms->state.tick_count == 4) fmt::print("Ticker is healthy. Waiting on shutdown.");
-
   // pack it up and send it
   mut buf = stringstream();
   msgpack::pack(buf, event);
@@ -19,12 +19,11 @@ let process_tick = $(MicroService ms, str& msg) -> bool {
   // short-circuit if shutting down
   if (not ms->state.is_running) return false;
   // parse and dispatch result
-  return type_match(parse_event(msg),
+  return typeswitch(parse_event(msg),
     // if it's a valid event then queue
-    $$(pair_price_update p) { return send_tick(ms, p); },
-
+    (pair_price_update& p) { return send_tick(ms, p); },
     // else log then eat the exception
-    $$(exception e) {
+    (exception& e) {
       fmt::print(e.what());
       return false;
     });

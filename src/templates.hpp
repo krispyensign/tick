@@ -24,16 +24,6 @@ template<typename A, typename... Funcs>
 auto type_match(A arg, Funcs... funcs) {
   return std::visit(exhaustive{funcs... }, arg);
 }
-
-template<typename... Ts>
-struct exhaustive2 {
-  exhaustive2(std::initializer_list<std::variant<Ts...>> il) {
-
-  }
-};
-
-// struct x##awesome
-
 #pragma endregion
 
 #pragma region higher order functions
