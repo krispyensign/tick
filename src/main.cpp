@@ -1,5 +1,6 @@
 #include "ticker_service.hpp"
 #include "types.hpp"
+#include <spdlog/spdlog.h>
 
 // TODO: add main argument parser
 // TODO: add sigint handler
@@ -10,6 +11,11 @@ def main(i16 argc, c_str argv[]) -> i16 {
     .zbind = "tcp://*:9000",
     .ws_uri = "wss://ws.kraken.com",
   };
-  tick_service(conf);
+  try {
+    tick_service(conf);
+  } catch (const exception& e) {
+    spdlog::error(e.what());
+    throw e;
+  }
   return 0;
 }

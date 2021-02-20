@@ -9,6 +9,8 @@
 #include <vector>
 #include <numeric>
 using namespace std;
+
+#include <spdlog/spdlog.h>
 #pragma endregion
 
 #pragma region type-helpers
@@ -27,28 +29,21 @@ struct type_switch {
   type_switch(T tin) : data(tin) {}
   template<typename... Funcs>
   auto operator() (Funcs... funcs) {
-    return type_match(data, funcs...);
+    return std::visit(exhaustive(funcs...), data);
   }
 };
+#pragma endregion
 
-template<typename A, typename... Funcs>
-auto type_match(A arg, Funcs... funcs) {
-  return std::visit(exhaustive{funcs... }, arg);
+#pragma region others
+template <typename A>
+auto wrap_error(A a)->decltype(a()) {
+  try {
+    a();
+  } catch (const exception& e) {
+    spdlog::error(e.what());
+    throw e;
+  }
 }
-
-template<typename T>
-struct result : public variant<T, exception> {
-  result(T tin) : variant<T, exception>(tin) {}
-  result(exception ein) : variant<T, exception>(ein) {}
-  result(variant<T, exception> data) : variant<T, exception>{data} {}
-
-  auto unwrap() -> T {
-    if(holds_alternative<exception>(this)) {
-      throw get<exception>(this);
-    }
-    return get<T>(this);
-  }
-};
 #pragma endregion
 
 #pragma region higher order functions

@@ -1,12 +1,9 @@
 #ifndef ticker_service
 #define ticker_service
 
-#include <spdlog/spdlog.h>
-
 #include "kraken.hpp"
 
-
-let send_tick = $(ServiceState s, ZSocket ticker_z, pair_price_update& event) -> bool {
+let send_tick = $(ServiceState s, ZSocket ticker_z, pair_price_update& event)->bool {
   // log healthy after 4 good ticks
   s->tick_count++;
   if (s->tick_count == 4) spdlog::info("Ticker is healthy. Waiting on shutdown.");
@@ -18,23 +15,23 @@ let send_tick = $(ServiceState s, ZSocket ticker_z, pair_price_update& event) ->
   return true;
 };
 
-let process_tick = $(ServiceState s, ZSocket ticker_z, str& msg) -> bool {
+let process_tick = $(ServiceState s, ZSocket ticker_z, str& msg)->bool {
   // short-circuit if shutting down
   if (not s->is_running) return false;
 
   // parse and dispatch result
   return type_switch(parse_event(msg))(
     // if it's a valid event then queue
-    $$(pair_price_update& p) { return send_tick(s, ticker_z, p); },
+    $$(pair_price_update & p) { return send_tick(s, ticker_z, p); },
 
     // else log then eat the exception
-    $(exception& e) {
+    $(exception & e) {
       spdlog::info(e.what());
       return false;
     });
 };
 
-let validate = $(config& conf) -> bool {
+let validate = $(config& conf)->bool {
   if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
     throw error("Invalid websocket uri for config");
   }
@@ -45,64 +42,61 @@ let validate = $(config& conf) -> bool {
   return true;
 };
 
-let ws_send = $(WebSocket ticker_ws, str& msg) -> void {
+let ws_send = $(WebSocket ticker_ws, str& msg)->void {
   // create a websocket envolope
-  mut ws_msg = rest::websocket_out_message();
+  mut ws_msg = websocket::out_message();
   // add the message in
   ws_msg.set_utf8_message(msg);
   // send it
   ticker_ws->send(ws_msg).get();
 };
 
-let tick_service = $(config& conf) -> void {
-  // attempt to get the available pairs for websocket subscription
-  try {
-    validate(conf);
-  } catch(const exception& e) {
-    spdlog::error(e.what());
-    throw e;
-  }
+let get_websocket = $(ZSocket zpublisher, config& conf)->WebSocket {
+  // configure websocket client
+  mut ws_conf = websocket::client_config();
+  ws_conf.set_validate_certificates(false);
+  mut ws = make_shared<websocket::client>(ws_conf);
+
+  // connect sockets
+  ws->connect(conf.ws_uri).get();
+  spdlog::info("websocket connected");
+
+  return ws;
+};
+
+let tick_service = $(config& conf)->void {
+  // perform basic validation on the config
+  validate(conf);
   spdlog::info("conf validated");
 
+  // attempt to get the available pairs for websocket subscription
   vec<str> pair_result;
-  try {
-    pair_result = get_pairs_list(api_url, assets_path).get();
-  } catch(const exception& e) {
-    spdlog::error(e.what());
-    throw e;
-  }
+  pair_result = get_pairs_list(api_url, assets_path).get();
   spdlog::info("got pairs");
 
-  // initialize publisher
-  mut context_z = zmq::context_t(1);
-  mut sock = zmq::socket_t(context_z, zmq::socket_type::pub);
-  mut ticker_z = make_shared<zmq::socket_t>(move(sock));
-  spdlog::info("got socket");
-  try {
-    ticker_z->bind(conf.zbind);
-  } catch(const exception& e) {
-    spdlog::error(e.what());
-    throw e;
-  }
+  // get a publisher socket
+  mut ctx = zmq::context(1);
+  mut sock = zmq::socket(ctx, zmq::socket_type::pub);
+  mut publisher = make_shared<zmq::socket>(move(sock));
+  spdlog::info("socket provisioned");
+
+  // attempt to bind
+  publisher->bind(conf.zbind);
   spdlog::info("socket bound");
 
-  // connect and setup websocket handler
-  mut ticker_ws = make_shared<rest::websocket>();
-  mut st = make_shared<state>();
-  spdlog::info("got websockets");
-  try {
-    ticker_ws->set_message_handler(
-      $$(rest::websocket_message msg) { process_tick(st, ticker_z, msg.extract_string().get()); });
-    ticker_ws->connect(conf.ws_uri).get();
-  } catch(const exception& e) {
-    spdlog::error(e.what());
-    throw e;
-  }
-  spdlog::info("websocket connected");
+  // connect websocket
+  mut ws = get_websocket(publisher, conf);
 
   // serialize the subscription request and send it off
   let subscription_json = create_tick_sub_request(pair_result).serialize();
-  ws_send(ticker_ws, subscription_json);
+  ws_send(ws, subscription_json);
+
+  // setup message callback
+  mut st = make_shared<state>();
+  ws->set_message_handler($$(websocket::in_message data) {
+    data.extract_string().then($$(str & msg) { process_tick(st, publisher, msg); });
+  });
+  spdlog::info("callback setup");
 
   return;
 };

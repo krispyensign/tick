@@ -68,7 +68,7 @@ let is_ticker = $(json::Value& json) -> bool {
   return true;
 };
 
-let parse_event = $(str& msg_data) -> result<pair_price_update> {
+let parse_event = $(str& msg_data) -> var<pair_price_update, exception> {
   mut msg = json::Document();
   msg.Parse(msg_data.c_str());
 

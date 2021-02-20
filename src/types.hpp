@@ -65,10 +65,14 @@ using client = web::http::client::http_client;
 using client_config = web::http::client::http_client_config;
 using response = web::http::http_response;
 
-using websocket = web::websockets::client::websocket_callback_client;
-using websocket_message = web::websockets::client::websocket_incoming_message;
-using websocket_out_message = web::websockets::client::websocket_outgoing_message;
 }  // namespace rest
+
+namespace websocket {
+using client = web::websockets::client::websocket_callback_client;
+using in_message = web::websockets::client::websocket_incoming_message;
+using out_message = web::websockets::client::websocket_outgoing_message;
+using client_config = web::websockets::client::websocket_client_config;
+}
 
 namespace zmq {
 using context = zmq::context_t;
@@ -86,13 +90,13 @@ struct tick_sub_req {
   } subscription;
   def serialize() -> str {
     return fmt::format(R"EOF(
-      {
+      {{
         "event":{},
         "pairs":{},
-        "subscription":{
+        "subscription":{{
           "name": {}
-        }
-      })EOF", event, pairs, subscription.name);
+        }}
+      }})EOF", event, pairs, subscription.name);
   }
 };
 
@@ -116,7 +120,7 @@ struct pair_price_update {
 #pragma endregion
 
 #pragma region other_aliases
-typedef shared_ptr<rest::websocket> WebSocket;
+typedef shared_ptr<websocket::client> WebSocket;
 typedef shared_ptr<zmq::socket> ZSocket;
 typedef shared_ptr<state> ServiceState;
 #pragma endregion
