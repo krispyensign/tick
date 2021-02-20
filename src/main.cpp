@@ -3,13 +3,12 @@
 
 // TODO: add main argument parser
 // TODO: add sigint handler
-// TODO: add logger
 // TODO: add stacktracing
 
 def main(i16 argc, c_str argv[]) -> i16 {
   let conf = config {
-    .zbind = "tcp://localhost:5000",
-    .ws_uri = "ws://kraken.api",
+    .zbind = "tcp://*:9000",
+    .ws_uri = "wss://ws.kraken.com",
   };
   tick_service(conf);
   return 0;

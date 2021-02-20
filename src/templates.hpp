@@ -1,16 +1,16 @@
 #ifndef templates
 #define templates
 #pragma region includes
+
 #include <initializer_list>
 #include <algorithm>
 #include <string>
 #include <variant>
 #include <vector>
 #include <numeric>
-
 using namespace std;
-
 #pragma endregion
+
 #pragma region type-helpers
 // helper type for the visitor #4
 template<typename> inline constexpr bool always_false_v = false;

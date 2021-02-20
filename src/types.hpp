@@ -50,7 +50,6 @@ typedef char *c_str;
 typedef std::string str;
 #pragma endregion
 
-
 #pragma region namespace_aliases
 using error = std::runtime_error;
 using namespace std;

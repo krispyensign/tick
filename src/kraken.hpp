@@ -1,10 +1,9 @@
 #ifndef kraken
 #define kraken
 
-#include "cpprest/http_msg.h"
-#include "macros.hpp"
 #include "templates.hpp"
 #include "types.hpp"
+#include "macros.hpp"
 
 let api_url = "https://api.kraken.com";
 let assets_path = "/0/public/AssetPairs";
