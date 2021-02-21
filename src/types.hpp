@@ -62,7 +62,7 @@ namespace rest {
 using methods = web::http::methods;
 using status_codes = web::http::status_codes;
 using client = web::http::client::http_client;
-using client_config = web::http::client::http_client_config;
+using config = web::http::client::http_client_config;
 using response = web::http::http_response;
 
 }  // namespace rest
@@ -71,7 +71,7 @@ namespace websocket {
 using client = web::websockets::client::websocket_callback_client;
 using in_message = web::websockets::client::websocket_incoming_message;
 using out_message = web::websockets::client::websocket_outgoing_message;
-using client_config = web::websockets::client::websocket_client_config;
+using config = web::websockets::client::websocket_client_config;
 }
 
 namespace zmq {
@@ -122,6 +122,7 @@ struct pair_price_update {
 #pragma region other_aliases
 typedef shared_ptr<websocket::client> WebSocket;
 typedef shared_ptr<zmq::socket> ZSocket;
+typedef shared_ptr<zmq::context> ZContext;
 typedef shared_ptr<state> ServiceState;
 #pragma endregion
 

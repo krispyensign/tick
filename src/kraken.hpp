@@ -39,7 +39,7 @@ let parse_json = $(str& response_text) -> vec<str> {
 
 let get_pairs_list = $(str& api_url, str& assets_path) -> pplx::task<vec<str>> {
   // disable ssl configs for now
-  mut config = rest::client_config();
+  mut config = rest::config();
   config.set_validate_certificates(false);
 
   // make the call and get a response back
