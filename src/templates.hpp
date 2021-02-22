@@ -1,5 +1,5 @@
-#ifndef templates
-#define templates
+#ifndef templates_hpp
+#define templates_hpp
 #pragma region includes
 
 #include <initializer_list>

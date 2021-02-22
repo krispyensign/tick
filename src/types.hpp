@@ -1,5 +1,5 @@
-#ifndef types
-#define types
+#ifndef types_hpp
+#define types_hpp
 #pragma region system_includes
 
 #include <exception>
@@ -13,6 +13,7 @@
 #include <utility>
 #include <variant>
 #include <vector>
+#include <functional>
 
 #include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
@@ -25,16 +26,8 @@
 
 #include <msgpack.hpp>
 #include <zmq.hpp>
-#pragma endregion
 
-#pragma region dsl
-#define let const auto
-#define mut auto
-#define def auto
-#define in :
-
-#define vec std::vector
-#define var std::variant
+#include <spdlog/spdlog.h>
 #pragma endregion
 
 #pragma region base_type_aliases
@@ -51,8 +44,19 @@ typedef std::string str;
 #pragma endregion
 
 #pragma region namespace_aliases
+
 using error = std::runtime_error;
 using namespace std;
+
+template <typename T>
+using vec = vector<T, std::allocator<T>>;
+
+template <typename... Ts>
+using var = variant<Ts...>;
+
+namespace logger {
+  using namespace spdlog;
+}
 
 namespace json {
 using namespace rapidjson;
@@ -74,21 +78,21 @@ using out_message = web::websockets::client::websocket_outgoing_message;
 using config = web::websockets::client::websocket_client_config;
 }
 
-namespace zmq {
-using context = zmq::context_t;
-using message = zmq::message_t;
-using socket = zmq::socket_t;
-}  // namespace zmq
+
 #pragma endregion
 
-#pragma region structs
+#pragma region data structures
+enum exchange_name {
+  KRAKEN,
+};
+
 struct tick_sub_req {
   str event;
   vec<str> pairs;
   struct {
     str name;
   } subscription;
-  def serialize() -> str {
+  auto serialize() -> str {
     return fmt::format(R"EOF(
       {{
         "event":{},
@@ -100,12 +104,14 @@ struct tick_sub_req {
   }
 };
 
-struct config {
+struct service_config {
     str zbind;
     str ws_uri;
+    str api_url;
+    str assets_path;
 };
 
-struct state {
+struct service_state {
     int tick_count = 0;
     bool is_running = false;
 };
@@ -116,14 +122,13 @@ struct pair_price_update {
   double bid;
   MSGPACK_DEFINE(trade_name, ask, bid);
 };
-
 #pragma endregion
 
 #pragma region other_aliases
 typedef shared_ptr<websocket::client> WebSocket;
-typedef shared_ptr<zmq::socket> ZSocket;
-typedef shared_ptr<zmq::context> ZContext;
-typedef shared_ptr<state> ServiceState;
+typedef shared_ptr<zmq::socket_t> ZSocket;
+typedef shared_ptr<zmq::context_t> ZContext;
+typedef shared_ptr<const service_config> ServiceConfig;
 #pragma endregion
 
 #endif
