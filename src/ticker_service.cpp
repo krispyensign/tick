@@ -1,5 +1,6 @@
 #include "kraken.hpp"
 #include "templates.hpp"
+#include "types.hpp"
 
 namespace exchange {
 function<tick_sub_req(const vec<str>&)> create_tick_sub_request;
@@ -30,7 +31,7 @@ auto process_tick(zmq::socket_t& ticker_publisher, const str& incoming_msg) -> b
   return type_match(
     exchange::parse_event(incoming_msg),
     // if it's a valid event then queue
-    [&](const pair_price_update& p) { return send_tick(ticker_publisher, p); },
+    [&ticker_publisher](const pair_price_update& p) { return send_tick(ticker_publisher, p); },
 
     // else log then eat the exception
     [](const exception& e) {
@@ -105,7 +106,7 @@ auto tick_service(exchange_name ex, const service_config& conf) -> void {
   // setup message callback
   auto tick_count = 0;
   auto is_running = false;
-  ws.set_message_handler([&](const websocket::in_message data) {
+  ws.set_message_handler([&tick_count, &is_running, &publisher](const websocket::in_message data) {
     data.extract_string()
       .then([&is_running](const str& msg) {
         return is_running ? msg : throw error("Caught shutdown.");
