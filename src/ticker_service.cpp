@@ -106,7 +106,7 @@ auto tick_service(exchange_name ex, const service_config& conf) -> void {
   // setup message callback
   auto tick_count = 0;
   auto is_running = false;
-  ws.set_message_handler([&tick_count, &is_running, &publisher](const websocket::in_message data) {
+  ws.set_message_handler([&is_running, &publisher, &tick_count](const websocket::in_message data) {
     data.extract_string()
       .then([&is_running](const str& msg) {
         return is_running ? msg : throw error("Caught shutdown.");
