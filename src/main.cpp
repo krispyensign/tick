@@ -20,7 +20,7 @@ auto backtrace_handler(int sig) -> void {
   auto size = backtrace(backtrace_array.data(), BACKTRACE_LENGTH);
 
   // print out all the frames to stderr
-  std::cerr << "Error: signal " << sig << std::endl;
+  cerr << "Error: signal " << sig << endl;
   backtrace_symbols_fd(backtrace_array.data(), size, STDERR_FILENO);
 
   // exit with an error code
