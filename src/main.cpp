@@ -1,4 +1,10 @@
-#line __LINE__ "system.cpp"
+#line __LINE__ "main.cpp"
+// #ifndef _GNU_SOURCE
+// #define BOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED
+// #endif
+
+// #include <boost/stacktrace.hpp>
+// #include <thread>
 
 #include <execinfo.h>
 #include <getopt.h>
@@ -14,12 +20,14 @@
 #define BACKTRACE_LENGTH 20
 #endif
 
+
 auto backtrace_handler(int sig) -> void {
+  // create backtrace stack
   auto backtrace_array = array<void *, BACKTRACE_LENGTH>();
-  // get void*'s for all entries on the stack
+  // populate backtrace stack and get amount actually populated
   auto size = backtrace(backtrace_array.data(), BACKTRACE_LENGTH);
 
-  // print out all the frames to stderr
+  // print out all the stack trace frames to stderr
   cerr << "Error: signal " << sig << endl;
   backtrace_symbols_fd(backtrace_array.data(), size, STDERR_FILENO);
 

@@ -16,6 +16,8 @@ list(
         "-fanalyzer"
         "-Werror"
         "-Wall"
+        # "-DBOOST_STACKTRACE_USE_ADDR2LINE"
+        "-g"
 )
 
 list(
@@ -25,7 +27,29 @@ list(
         "-fanalyzer"
         "-Werror"
         "-Wall"
+        # "-DBOOST_STACKTRACE_USE_ADDR2LINE"
+        "-g"
 )
+
+# if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+# list(
+#     APPEND CMAKE_CXX_FLAGS_DEBUG
+#     "-D_GNU_SOURCE"
+# )
+# list(
+#     APPEND CMAKE_LINKER_FLAGS_DEBUG
+#     "-D_GNU_SOURCE"
+# )
+# else()
+# list(
+#     APPEND CMAKE_CXX_FLAGS_DEBUG
+#     "-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED"
+# )
+# list(
+#     APPEND CMAKE_LINKER_FLAGS_DEBUG
+#     "-DBOOST_STACKTRACE_GNU_SOURCE_NOT_REQUIRED"
+# )
+# endif()
 
 if(CMAKE_CXX_CPPCHECK)
 else()
