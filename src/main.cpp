@@ -22,9 +22,10 @@ auto backtrace_handler(int sig) -> void {
   // print out all the frames to stderr
   std::cerr << "Error: signal " << sig << std::endl;
   backtrace_symbols_fd(backtrace_array.data(), size, STDERR_FILENO);
+
+  // exit with an error code
   exit(1);
 }
-
 
 auto main(i16 argc, c_str argv[]) -> i16 {
   signal(SIGSEGV, backtrace_handler);
