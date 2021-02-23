@@ -23,15 +23,11 @@ struct exhaustive : Ts... {
   exhaustive(const Ts&... ts) : Ts{ts}... {};
 };
 
-template<typename T>
-struct type_switch {
-  T data;
-  type_switch(T tin) : data(tin) {}
-  template<typename... Funcs>
-  auto operator() (Funcs... funcs) {
-    return std::visit(exhaustive(funcs...), data);
-  }
-};
+template<typename T, typename... Funcs>
+auto type_match(T tin, Funcs... funcs) {
+  return std::visit(exhaustive{funcs...}, tin);
+}
+
 #pragma endregion
 
 #pragma region others

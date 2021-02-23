@@ -3,6 +3,7 @@
 #include "types.hpp"
 
 namespace ticker_service {
-auto tick_service(const service_config& conf) -> void;
+auto tick_service(exchange_name ex, const service_config& conf) -> void;
 }
+
 #endif

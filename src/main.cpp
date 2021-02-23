@@ -12,7 +12,7 @@ auto main(i16 argc, c_str argv[]) -> i16 {
       .api_url = "https://api.kraken.com",
       .assets_path = "/0/public/AssetPairs",
     };
-    ticker_service::tick_service(conf);
+    ticker_service::tick_service(exchange_name::KRAKEN, conf);
   } catch (const exception& e) {
     logger::error(e.what());
     throw e;

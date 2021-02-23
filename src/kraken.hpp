@@ -9,4 +9,5 @@ namespace kraken {
     auto create_tick_sub_request(const vec<str>& pairs) -> tick_sub_req;
 }
 
+
 #endif
