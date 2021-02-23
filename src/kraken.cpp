@@ -2,7 +2,7 @@
 #include "types.hpp"
 
 namespace kraken {
-function create_tick_sub_request = [](const vec<str>& pairs) -> tick_sub_req {
+auto create_tick_sub_request(const vec<str>& pairs) -> tick_sub_req {
   return {
     .event = "subscribe",
     .pairs = pairs,
@@ -13,7 +13,7 @@ function create_tick_sub_request = [](const vec<str>& pairs) -> tick_sub_req {
   };
 };
 
-function parse_json = [](const str& response_text) -> vec<str> {
+auto parse_json(const str& response_text) -> vec<str> {
   // provision and parse doc
   auto json_doc = json::Document();
   json_doc.Parse(response_text.c_str());
@@ -32,7 +32,7 @@ function parse_json = [](const str& response_text) -> vec<str> {
   return pair_list;
 };
 
-function get_pairs_list = [](const str& api_url, const str& assets_path) -> vec<str> {
+auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
   logger::info("Getting kraken pairs list");
   // disable ssl configs for now
   auto config = rest::config();
@@ -50,7 +50,7 @@ function get_pairs_list = [](const str& api_url, const str& assets_path) -> vec<
   return parse_json(response.extract_string().get());
 };
 
-function is_ticker = [](const json::Value& json) -> bool {
+auto is_ticker(const json::Value& json) -> bool {
   // validate the payload has the following fields
   const auto required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
@@ -61,7 +61,7 @@ function is_ticker = [](const json::Value& json) -> bool {
   return true;
 };
 
-function parse_event = [](const str& msg_data) -> var<pair_price_update, exception> {
+auto parse_event(const str& msg_data) -> var<pair_price_update, exception> {
   auto msg = json::Document();
   msg.Parse(msg_data.c_str());
 

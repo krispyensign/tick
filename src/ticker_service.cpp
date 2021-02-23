@@ -8,7 +8,7 @@ function<var<pair_price_update, std::exception>(const str&)> parse_event;
 }  // namespace exchange
 
 namespace ticker_service {
-function select_exchange = [](exchange_name ex) -> void {
+auto select_exchange(exchange_name ex) -> void {
   switch (ex) {
     case KRAKEN:
       exchange::create_tick_sub_request = kraken::create_tick_sub_request;
@@ -17,7 +17,7 @@ function select_exchange = [](exchange_name ex) -> void {
   }
 };
 
-function send_tick = [](zmq::socket_t& ticker_publisher, const pair_price_update& event) -> bool {
+auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) -> bool {
   // pack it up and send it
   auto buf = stringstream();
   msgpack::pack(buf, event);
@@ -25,7 +25,7 @@ function send_tick = [](zmq::socket_t& ticker_publisher, const pair_price_update
   return true;
 };
 
-function process_tick = [](zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
+auto process_tick(zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
   // parse and dispatch result
   return type_match(
     exchange::parse_event(incoming_msg),
@@ -39,7 +39,7 @@ function process_tick = [](zmq::socket_t& ticker_publisher, const str& incoming_
     });
 };
 
-function validate = [](const service_config& conf) -> bool {
+auto validate(const service_config& conf) -> bool {
   if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
     throw error("Invalid websocket uri for config");
   }
@@ -50,7 +50,7 @@ function validate = [](const service_config& conf) -> bool {
   return true;
 };
 
-function ws_send = [](websocket::client& ticker_ws, const str& msg) -> void {
+auto ws_send(websocket::client& ticker_ws, const str& msg) -> void {
   // create a websocket envolope
   auto ws_msg = websocket::out_message();
   // add the message in
@@ -59,7 +59,7 @@ function ws_send = [](websocket::client& ticker_ws, const str& msg) -> void {
   ticker_ws.send(ws_msg).get();
 };
 
-function start_publisher = [](const service_config& conf, zmq::context_t& ctx) -> zmq::socket_t {
+auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::socket_t {
   // get a publisher socket
   auto publisher = zmq::socket_t(ctx, zmq::socket_type::pub);
   logger::info("socket provisioned");
@@ -71,7 +71,7 @@ function start_publisher = [](const service_config& conf, zmq::context_t& ctx) -
   return publisher;
 };
 
-function start_websocket = [](const service_config& conf) -> websocket::client {
+auto start_websocket(const service_config& conf) -> websocket::client {
   // configure websocket client
   auto ws_conf = websocket::config();
   ws_conf.set_validate_certificates(false);
@@ -84,7 +84,7 @@ function start_websocket = [](const service_config& conf) -> websocket::client {
   return ws;
 };
 
-function tick_service = [](exchange_name ex, const service_config& conf) -> void {
+auto tick_service(exchange_name ex, const service_config& conf) -> void {
   // configure exchange and perform basic validation on the config
   select_exchange(ex);
   validate(conf);
@@ -113,7 +113,8 @@ function tick_service = [](exchange_name ex, const service_config& conf) -> void
       .then([&publisher](const str& msg) { return process_tick(publisher, msg) ? 1 : 0; })
       .then([&tick_count](const int result) {
         if (++tick_count == 4) logger::info("Ticker healthy.");
-      });
+      })
+      .get();
   });
   logger::info("callback setup");
 
