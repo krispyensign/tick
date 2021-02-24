@@ -14,7 +14,8 @@ endif()
 
 find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
 find_package(Boost REQUIRED COMPONENTS iostreams random system thread filesystem chrono
-             atomic date_time regex unit_test_framework log log_setup)
+  atomic date_time regex unit_test_framework log log_setup
+)
 
 include(cmake/cppzmq.cmake)
 include(cmake/backwardcpp.cmake)
@@ -25,9 +26,9 @@ include(cmake/msgpack.cmake)
 include(cmake/cpprestsdk.cmake)
 externalproject_add_stepdependencies(spdlog build fmtlib)
 
-file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
+file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
 add_dependencies(tick rapidjson backwardcpp cppzmq fmtlib spdlog msgpack cpprestsdk)
 
@@ -40,18 +41,9 @@ list(APPEND CMAKE_CXX_CPPCHECK "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
   "--enable=all" "--inconclusive" "--check-config" "--suppress=missingIncludeSystem" "--report-progress"
 )
 
-target_include_directories(tick
-  PUBLIC
-  ${BACKWARD_CPP_INCLUDE_DIR}
-  ${RAPIDJSON_INCLUDE_DIR}
-  ${PC_LIBZMQ_INCLUDE_DIRS}
-  ${CPPZMQ_INCLUDE_DIR}
-  ${OPENSSL_INCLUDE_DIR}
-  ${BOOST_INCLUDE_DIR}
-  ${FMTLIB_INCLUDE_DIR}
-  ${SPDLOG_INCLUDE_DIR}
-  ${MSGPACK_INCLUDE_DIR}
-  ${CPPRESTSDK_INCLUDE_DIR}
+target_include_directories(tick PUBLIC ${BACKWARD_CPP_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIR}
+  ${PC_LIBZMQ_INCLUDE_DIRS} ${CPPZMQ_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR}
+  ${FMTLIB_INCLUDE_DIR} ${SPDLOG_INCLUDE_DIR} ${MSGPACK_INCLUDE_DIR} ${CPPRESTSDK_INCLUDE_DIR}
 )
 
 if(APPLE)
