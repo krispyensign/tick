@@ -26,7 +26,7 @@ file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_executable(tick ${TICK_SOURCE_FILES})
-add_dependencies(tick rapidjson backward-cpp cppzmq fmtlib spdlog msgpack cpprestsdk)
+add_dependencies(tick rapidjson backwardcpp cppzmq fmtlib spdlog msgpack cpprestsdk)
 
 if(CMAKE_CXX_CPPCHECK)
 else()
