@@ -71,7 +71,7 @@ using response = web::http::http_response;
 
 }  // namespace rest
 
-namespace websocket {
+namespace ws {
 using client = web::websockets::client::websocket_callback_client;
 using in_message = web::websockets::client::websocket_incoming_message;
 using out_message = web::websockets::client::websocket_outgoing_message;
@@ -122,13 +122,6 @@ struct pair_price_update {
   double bid;
   MSGPACK_DEFINE(trade_name, ask, bid);
 };
-#pragma endregion
-
-#pragma region other_aliases
-typedef shared_ptr<websocket::client> WebSocket;
-typedef shared_ptr<zmq::socket_t> ZSocket;
-typedef shared_ptr<zmq::context_t> ZContext;
-typedef shared_ptr<const service_config> ServiceConfig;
 #pragma endregion
 
 #endif

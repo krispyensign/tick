@@ -9,6 +9,7 @@ function<var<pair_price_update, std::exception>(const str&)> parse_event;
 }  // namespace exchange
 
 namespace ticker_service {
+
 auto select_exchange(exchange_name ex) -> void {
   switch (ex) {
     case KRAKEN:
@@ -51,13 +52,13 @@ auto validate(const service_config& conf) -> bool {
   return true;
 };
 
-auto ws_send(websocket::client& ticker_ws, const str& msg) -> void {
+auto ws_send(ws::client& ticker_ws, const str& in_msg) -> void {
   // create a websocket envolope
-  auto ws_msg = websocket::out_message();
+  auto out_msg = ws::out_message();
   // add the message in
-  ws_msg.set_utf8_message(msg);
+  out_msg.set_utf8_message(in_msg);
   // send it
-  ticker_ws.send(ws_msg).get();
+  ticker_ws.send(out_msg).get();
 };
 
 auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::socket_t {
@@ -72,11 +73,11 @@ auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::so
   return publisher;
 };
 
-auto start_websocket(const service_config& conf) -> websocket::client {
+auto start_websocket(const service_config& conf) -> ws::client {
   // configure websocket client
-  auto ws_conf = websocket::config();
+  auto ws_conf = ws::config();
   ws_conf.set_validate_certificates(false);
-  auto ws = websocket::client(ws_conf);
+  auto ws = ws::client(ws_conf);
   logger::info("websocket provisioned");
 
   // connect sockets
@@ -106,14 +107,14 @@ auto tick_service(exchange_name ex, const service_config& conf) -> void {
   // setup message callback
   auto tick_count = 0;
   auto is_running = false;
-  ws.set_message_handler([&is_running, &publisher, &tick_count](const websocket::in_message data) {
+  ws.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
     data.extract_string()
       .then([&is_running](const str& msg) {
         return is_running ? msg : throw error("Caught shutdown.");
       })
       .then([&publisher](const str& msg) { return process_tick(publisher, msg) ? 1 : 0; })
       .then([&tick_count](const int result) {
-        if (++tick_count == 4) logger::info("Ticker healthy.");
+        if (tick_count += result == 4) logger::info("Ticker healthy.");
       })
       .get();
   });
