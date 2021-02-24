@@ -5,6 +5,7 @@ ExternalProject_Add(
   PREFIX ${CMAKE_BINARY_DIR}/msgpack
   GIT_REPOSITORY "https://github.com/msgpack/msgpack-c.git"
   GIT_TAG cpp_master
+  GIT_PROGRESS true
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
   TEST_COMMAND ""

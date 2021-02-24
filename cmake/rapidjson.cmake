@@ -5,6 +5,7 @@ ExternalProject_Add(
   PREFIX ${CMAKE_BINARY_DIR}/rapidjson
   GIT_REPOSITORY "https://github.com/Tencent/rapidjson"
   GIT_TAG master
+  GIT_PROGRESS true
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
   TEST_COMMAND ""
