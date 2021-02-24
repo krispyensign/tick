@@ -9,6 +9,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MSGPACK_CXX17 ON)
 set(FMT_HEADER_ONLY ON)
 
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
 find_package(Boost REQUIRED COMPONENTS iostreams random system thread filesystem chrono
              atomic date_time regex unit_test_framework log log_setup)
@@ -51,6 +55,13 @@ target_include_directories(tick
   ${MSGPACK_INCLUDE_DIR}
   ${CPPRESTSDK_INCLUDE_DIR}
 )
+
+if(APPLE)
+  target_link_libraries(tick "-framework System")
+else()
+  find_package(unwind REQUIRED)
+  target_link_libraries(tick libunwind)
+endif()
 
 target_link_libraries(tick
   Boost::boost Boost::random Boost::system Boost::thread Boost::filesystem Boost::chrono
