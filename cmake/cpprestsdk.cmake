@@ -16,17 +16,13 @@ ExternalProject_Get_Property(cpprestsdk BINARY_DIR)
 set(CPPRESTSDK_INCLUDE_DIR ${SOURCE_DIR}/Release/include/ CACHE INTERNAL "Path to include cpprestsdk")
 set(CPPRESTSDK_LIBRARY_DIR ${BINARY_DIR}/Release/Binaries/ CACHE INTERNAL "Path to library cpprestsdk")
 
-find_library(cpprestsdk_LIBRARY NAMES libcpprest.so libcpprest.dylib libcpprest.dll
-             PATHS ${CPPRESTSDK_LIBRARY_DIR})
-
-if(cpprestsdk_LIBRARY)
-    set(cpprestsdk_FOUND ON)
-endif()
-
-if (TARGET libcpprest)
-    # avoid errors defining targets twice
-    return()
-endif()
-
 add_library(libcpprest SHARED IMPORTED)
-set_property(TARGET libcpprest PROPERTY IMPORTED_LOCATION ${cpprestsdk_LIBRARY})
+add_dependencies(libcpprest cpprestsdk)
+
+if(APPLE)
+set_property(TARGET libcpprest PROPERTY IMPORTED_LOCATION "${CPPRESTSDK_LIBRARY_DIR}/libcpprest.dylib")
+elseif(WIN32)
+set_property(TARGET libcpprest PROPERTY IMPORTED_LOCATION "${CPPRESTSDK_LIBRARY_DIR}/libcpprest.dll")
+else()
+set_property(TARGET libcpprest PROPERTY IMPORTED_LOCATION "${CPPRESTSDK_LIBRARY_DIR}/libcpprest.so")
+endif()
