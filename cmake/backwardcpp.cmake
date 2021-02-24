@@ -5,9 +5,9 @@ ExternalProject_Add(
   PREFIX ${CMAKE_BINARY_DIR}/backward-cpp
   GIT_REPOSITORY "https://github.com/bombela/backward-cpp"
   GIT_TAG master
+  BUILD_COMMAND ""
   INSTALL_COMMAND ""
   TEST_COMMAND ""
-  BUILD_COMMAND ""
   CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
 )
 
