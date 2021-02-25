@@ -7,7 +7,8 @@ ExternalProject_Add(
   GIT_TAG master
   GIT_PROGRESS true
   INSTALL_COMMAND ""
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
+  TEST_COMMAND ""
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "-DBUILD_TESTS=off" "-DFMT_TEST=off"
 )
 
 ExternalProject_Get_Property(fmtlib_git SOURCE_DIR)

@@ -1,16 +1,17 @@
+#include "kraken.hpp"
 #include "templates.hpp"
 #include "types.hpp"
 
 namespace kraken {
-auto create_tick_sub_request(const vec<str>& pairs) -> tick_sub_req {
-  return {
+auto create_tick_sub_request(const vec<str>& pairs) -> str {
+  return tick_sub_req {
     .event = "subscribe",
     .pairs = pairs,
     .subscription =
       {
         .name = "ticker",
       },
-  };
+  }.serialize();
 };
 
 auto parse_json(const str& response_text) -> vec<str> {

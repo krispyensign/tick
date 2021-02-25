@@ -86,24 +86,6 @@ enum exchange_name {
   KRAKEN,
 };
 
-struct tick_sub_req {
-  str event;
-  vec<str> pairs;
-  struct {
-    str name;
-  } subscription;
-  auto serialize() -> str {
-    return fmt::format(R"EOF(
-      {{
-        "event":{},
-        "pairs":{},
-        "subscription":{{
-          "name": {}
-        }}
-      }})EOF", event, pairs, subscription.name);
-  }
-};
-
 struct service_config {
     str zbind;
     str ws_uri;
