@@ -6,7 +6,6 @@ ExternalProject_Add(
   GIT_REPOSITORY "https://github.com/msgpack/msgpack-c.git"
   GIT_TAG cpp_master
   GIT_PROGRESS true
-  BUILD_COMMAND ""
   INSTALL_COMMAND ""
   CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
 )

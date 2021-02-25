@@ -1,6 +1,4 @@
 #include "kraken.hpp"
-#include "templates.hpp"
-#include "types.hpp"
 
 namespace kraken {
 auto create_tick_sub_request(const vec<str>& pairs) -> str {

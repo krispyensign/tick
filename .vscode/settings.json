@@ -9,10 +9,4 @@
         "enabled": true
     },
     "clangd.semanticHighlighting": true,
-    "C_Cpp.default.cppStandard": "gnu++20",
-    "C_Cpp.default.cStandard": "gnu17",
-    "C_Cpp.errorSquiggles": "Disabled",
-    "C_Cpp.experimentalFeatures": "Enabled",
-    "C_Cpp.intelliSenseEngine": "Disabled",
-    "C_Cpp.loggingLevel": "Debug",
 }

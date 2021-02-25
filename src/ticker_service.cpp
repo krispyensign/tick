@@ -1,8 +1,5 @@
-#include <unistd.h>
-#include "templates.hpp"
-#include "types.hpp"
 #include "kraken.hpp"
-#include "zmq.hpp"
+#include "templates.hpp"
 
 namespace exchange {
 function<str(const vec<str>&)> create_tick_sub_request;
@@ -145,7 +142,7 @@ auto tick_service(exchange_name ex, const service_config& conf) -> tuple<functio
     });
     logger::info("callback setup");
     while(is_running) {
-      this_thread::sleep_for(2000ms);
+      this_thread::sleep_for(10ms);
     }
 
     return;

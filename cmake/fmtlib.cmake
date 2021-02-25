@@ -7,8 +7,7 @@ ExternalProject_Add(
   GIT_TAG master
   GIT_PROGRESS true
   INSTALL_COMMAND ""
-  TEST_COMMAND ""
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "-DBUILD_TESTS=off" "-DFMT_TEST=off"
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "-DBUILD_TESTS=off"
 )
 
 ExternalProject_Get_Property(fmtlib_git SOURCE_DIR)
@@ -16,7 +15,7 @@ ExternalProject_Get_Property(fmtlib_git BINARY_DIR)
 set(FMTLIB_INCLUDE_DIR ${SOURCE_DIR}/include/ CACHE INTERNAL "Path to include fmtlib")
 set(FMTLIB_LIBRARY_DIR ${BINARY_DIR}/ CACHE INTERNAL "Path to library fmtlib")
 
-# avoid errors defining targets twice
+# avoid errors defining targets twic
 if (TARGET fmtlib)
     return()
 endif()
