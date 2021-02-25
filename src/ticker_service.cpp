@@ -99,15 +99,15 @@ auto tick_service(exchange_name ex, const service_config& conf) -> void {
   // provision all the endpoints and connections
   auto ctx = zmq::context_t(1);
   auto publisher = start_publisher(conf, ctx);
-  auto ws = start_websocket(conf);
+  auto wsocket = start_websocket(conf);
 
   // serialize the subscription request and send it off
-  ws_send(ws, exchange::create_tick_sub_request(pair_result).serialize());
+  ws_send(wsocket, exchange::create_tick_sub_request(pair_result).serialize());
 
   // setup message callback
   auto tick_count = 0;
   auto is_running = false;
-  ws.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
+  wsocket.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
     data.extract_string()
       .then([&is_running](const str& msg) {
         return is_running ? msg : throw error("Caught shutdown.");
