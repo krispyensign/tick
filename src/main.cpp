@@ -1,7 +1,10 @@
+#define BACKWARD_HAS_LIBUNWIND 1
+#include "backward.hpp"
 #include "ticker_service.hpp"
 // TODO: add main argument parser and options file
 // TODO: add sigint handler
-// TODO: add stack trace handler
+
+backward::SignalHandling sh;
 
 auto main(i16 argc, c_str argv[]) -> i16 {
   try {
