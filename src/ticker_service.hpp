@@ -1,6 +1,5 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
-#include <future>
 #include "types.hpp"
 
 namespace ticker_service {

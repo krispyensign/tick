@@ -1,20 +1,30 @@
 #define BACKWARD_HAS_LIBUNWIND 1
+#include <spdlog/spdlog.h>
+
+#include <future>
+
 #include "backward.hpp"
 #include "ticker_service.hpp"
+
 // TODO: add main argument parser and options file
 
+// setup stacktracing
 backward::SignalHandling sh;
 
-namespace {
-std::function<void(int)> shutdown_handler;
-void signal_handler(int signal) { shutdown_handler(signal); }
+namespace logger {
+using namespace spdlog;
 }
 
-auto main(i16 argc, c_str argv[]) -> i16 {
+// handlers for graceful shutdown on ctrl-c
+namespace {
+function<void(int)> shutdown_handler;
+auto signal_handler(int signal) -> void { shutdown_handler(signal); }
+}  // namespace
 
+auto main(i16 argc, c_str argv[]) -> i16 {
   // setup the cancellation token for the service to catch console ctrl-c
   auto cancellation_token = atomic_bool(true);
-  shutdown_handler = [&cancellation_token](int) { cancellation_token = false; };
+  shutdown_handler = [&cancellation_token](int) -> void { cancellation_token = false; };
   signal(SIGINT, signal_handler);
 
   try {
@@ -28,7 +38,8 @@ auto main(i16 argc, c_str argv[]) -> i16 {
 
     // launch the service
     async(launch::async, ticker_service::tick_service, exchange_name::KRAKEN, conf,
-                         ref(cancellation_token)).get();
+          ref(cancellation_token))
+      .get();
 
   } catch (const exception& e) {
     logger::error(e.what());

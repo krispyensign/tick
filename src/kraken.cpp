@@ -1,8 +1,29 @@
+#include "kraken.hpp"
+
+#include <cpprest/http_client.h>
+#include <fmt/format.h>
+#include <rapidjson/document.h>
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <spdlog/spdlog.h>
 
-#include "kraken.hpp"
+namespace json {
+using namespace rapidjson;
+}
+
+namespace logger {
+using namespace spdlog;
+}
+
+namespace rest {
+using methods = web::http::methods;
+using status_codes = web::http::status_codes;
+using client = web::http::client::http_client;
+using config = web::http::client::http_client_config;
+using response = web::http::http_response;
+
+}  // namespace rest
 
 namespace kraken {
 
@@ -62,7 +83,8 @@ auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
   config.set_validate_certificates(false);
 
   // make the call and get a response back
-  auto response = rest::client(api_url, config).request(rest::methods::GET, assets_path).get();
+  const auto response =
+    rest::client(api_url, config).request(rest::methods::GET, assets_path).get();
 
   // if not OK then return an error
   if (response.status_code() != rest::status_codes::OK) {
@@ -100,10 +122,10 @@ auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
   if (not msg.IsArray() or msg.Size() != 4) return msg_data;
 
   // cast the message to a publication array
-  auto publication = msg.GetArray();
+  const auto publication = msg.GetArray();
 
   // get the payload from the publication as an object
-  auto payload = publication[1].GetObject();
+  const auto payload = publication[1].GetObject();
 
   // validate the payload is a tick object
   if (not is_ticker(payload)) return msg_data;

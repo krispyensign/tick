@@ -1,17 +1,20 @@
-#include <algorithm>
-#include <future>
-#include <iostream>
-#include <mutex>
-#include <numeric>
-#include <string>
-#include <thread>
-#include <vector>
+#include <cpprest/ws_client.h>
+
+#include <zmq.hpp>
 
 #include "kraken.hpp"
-#include "pplx/pplx.h"
-#include "pplx/pplxtasks.h"
-#include "spdlog/spdlog.h"
 #include "templates.hpp"
+
+namespace ws {
+using client = web::websockets::client::websocket_callback_client;
+using in_message = web::websockets::client::websocket_incoming_message;
+using out_message = web::websockets::client::websocket_outgoing_message;
+using config = web::websockets::client::websocket_client_config;
+}  // namespace ws
+
+namespace logger {
+using namespace spdlog;
+}
 
 namespace exchange {
 function<str(const vec<str>&)> create_tick_sub_request;
@@ -117,7 +120,6 @@ auto tick_shutdown(zmq::context_t& ctx, zmq::socket_t& publisher, ws::client& ws
   // then stop the sink
   publisher.close();
   ctx.shutdown();
-
   logger::info("Shutdown complete");
 }
 
@@ -144,7 +146,7 @@ auto tick_service(exchange_name ex, const service_config& conf, const atomic_boo
       data.extract_string()
         .then([&publisher](const str& msg) { return process_tick(publisher, msg) ? 1 : 0; })
         .then([&tick_count](int result) {
-          tick_count+=result;
+          tick_count += result;
           if (tick_count == 4) logger::info("Ticker healthy.");
         })
         .get();
