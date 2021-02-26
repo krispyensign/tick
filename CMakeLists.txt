@@ -27,6 +27,7 @@ externalproject_add_stepdependencies(spdlog build fmtlib)
 
 set(CMAKE_CXX_CPPCHECK "cppcheck" "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
   "--suppress=*:${RAPIDJSON_INCLUDE_DIR}rapidjson/*.h"
+  "--suppress=*:${MSGPACK_INCLUDE_DIR}"
   "--enable=all" "--inconclusive" "--suppress=missingIncludeSystem" "--report-progress"
 )
 message(INFO "${CMAKE_CXX_CPPCHECK}")
