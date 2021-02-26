@@ -1,16 +1,40 @@
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
+
 #include "kraken.hpp"
 
 namespace kraken {
+
 auto create_tick_sub_request(const vec<str>& pairs) -> str {
-  return tick_sub_req {
-    .event = "subscribe",
-    .pairs = pairs,
-    .subscription =
-      {
-        .name = "ticker",
-      },
-  }.serialize();
-};
+  // allocate root dom
+  auto out_json = json::Document();
+  out_json.SetObject();
+  auto& allocator = out_json.GetAllocator();
+
+  // event: "subscribe"
+  out_json.AddMember("event", json::Value().SetString("subscribe"), allocator);
+
+  // pairs: [pair ...]
+  auto pairs_val = json::Value();
+  pairs_val.SetArray();
+  for (auto& pair : pairs)
+    pairs_val.PushBack(json::Value().SetString(json::StringRef(pair.c_str())), allocator);
+  out_json.AddMember("pair", pairs_val, allocator);
+
+  // struct { name: "ticker" }
+  auto subscription_val = json::Value();
+  subscription_val.SetObject();
+  subscription_val.AddMember("name", json::Value().SetString("ticker"), allocator);
+  out_json.AddMember("subscription", subscription_val, allocator);
+
+  // serialize
+  auto buffer = json::StringBuffer();
+  auto writer = json::Writer<json::StringBuffer>(buffer);
+  out_json.Accept(writer);
+
+  return string(buffer.GetString());
+}
 
 auto parse_json(const str& response_text) -> vec<str> {
   // provision and parse doc
@@ -60,28 +84,35 @@ auto is_ticker(const json::Value& json) -> bool {
   return true;
 };
 
-auto parse_event(const str& msg_data) -> var<pair_price_update, exception> {
+auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
   auto msg = json::Document();
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
-  if (msg.HasParseError() or msg.HasMember("errorMessage"))
-    return error(msg["errorMessage"].GetString());
+  if (msg.HasParseError()) throw error("Failed to parse: " + msg_data);
+
+  // if message is {} object and is an error object then throw
+  if (msg.IsObject() and msg.HasMember("errorMessage")) {
+    throw error(msg["errorMessage"].GetString());
+  }
 
   // validate it is a kraken publication type.  all kraken publications are arrays of size 4
-  if (msg.Size() != 4) return error("Not a publication");
+  if (not msg.IsArray() or msg.Size() != 4) return msg_data;
 
-  // get the payload of the publication
-  const auto payload = msg[1].GetObject();
+  // cast the message to a publication array
+  auto publication = msg.GetArray();
+
+  // get the payload from the publication as an object
+  auto payload = publication[1].GetObject();
 
   // validate the payload is a tick object
-  if (not is_ticker(payload)) return error("Payload is not a tick");
+  if (not is_ticker(payload)) return msg_data;
 
   // construct a neutral format for the price update event
   return pair_price_update{
-    .trade_name = msg[3].GetString(),
-    .ask = payload["a"][0].GetDouble(),
-    .bid = payload["b"][0].GetDouble(),
+    .trade_name = publication[3].GetString(),
+    .ask = atof(payload["a"][0].GetString()),
+    .bid = atof(payload["b"][0].GetString()),
   };
 };
 }  // namespace kraken

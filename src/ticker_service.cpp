@@ -1,10 +1,22 @@
+#include <algorithm>
+#include <future>
+#include <iostream>
+#include <mutex>
+#include <numeric>
+#include <string>
+#include <thread>
+#include <vector>
+
 #include "kraken.hpp"
+#include "pplx/pplx.h"
+#include "pplx/pplxtasks.h"
+#include "spdlog/spdlog.h"
 #include "templates.hpp"
 
 namespace exchange {
 function<str(const vec<str>&)> create_tick_sub_request;
 function<vec<str>(const str&, const str&)> get_pairs_list;
-function<var<pair_price_update, std::exception>(const str&)> parse_event;
+function<var<pair_price_update, str>(const str&)> parse_event;
 function<str(void)> create_tick_unsub_request;
 }  // namespace exchange
 
@@ -36,8 +48,8 @@ auto process_tick(zmq::socket_t& ticker_publisher, const str& incoming_msg) -> b
     [&ticker_publisher](const pair_price_update& p) { return send_tick(ticker_publisher, p); },
 
     // else log then eat the exception
-    [](const exception& e) {
-      logger::info(e.what());
+    [](const str& e) {
+      logger::info(e);
       return false;
     });
 };
@@ -96,59 +108,53 @@ auto start_websocket(const service_config& conf, const vec<str>& pair_result) ->
 };
 
 auto tick_shutdown(zmq::context_t& ctx, zmq::socket_t& publisher, ws::client& wsock) -> void {
-  publisher.close();
+  // stop the work vent first
+  logger::info("Got shutdown signal");
   ws_send(wsock, exchange::create_tick_unsub_request());
+  this_thread::sleep_for(100ms);
   wsock.close();
+
+  // then stop the sink
+  publisher.close();
   ctx.shutdown();
+
+  logger::info("Shutdown complete");
 }
 
-auto tick_service(exchange_name ex, const service_config& conf) -> tuple<function<void(void)>, pplx::task<void>> {
+auto tick_service(exchange_name ex, const service_config& conf, const atomic_bool& is_running)
+  -> void {
   // configure exchange and perform basic validation on the config
   select_exchange(ex);
   validate(conf);
   logger::info("conf validated");
-  function<void(void)> shutdown;
 
   // attempt to get the available pairs for websocket subscription
   auto const pair_result = exchange::get_pairs_list(conf.api_url, conf.assets_path);
+  logger::info("got pairs");
 
-  auto service_task = pplx::create_task([=, &shutdown]() -> void {
-    logger::info("got pairs");
+  // provision all the endpoints and connections
+  auto ctx = zmq::context_t(1);
+  auto publisher = start_publisher(conf, ctx);
+  auto wsock = start_websocket(conf, pair_result);
 
-    // provision all the endpoints and connections
-    auto ctx = zmq::context_t(1);
-    auto publisher = start_publisher(conf, ctx);
-    auto wsock = start_websocket(conf, pair_result);
-
-    // setup shutdown handler
-    auto is_running = false;
-    shutdown = [&]() -> void {
-      is_running = false;
-      tick_shutdown(ctx, publisher, wsock);
-    };
-
-    // setup message callback
-    auto tick_count = 0;
-    wsock.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
+  // setup message callback
+  auto tick_count = 0;
+  wsock.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
+    if (is_running)
       data.extract_string()
-        .then([&is_running](const str& msg) {
-          return is_running ? msg : throw error("Caught shutdown.");
-        })
         .then([&publisher](const str& msg) { return process_tick(publisher, msg) ? 1 : 0; })
-        .then([&tick_count](const int result) {
-          if (tick_count += result == 4) logger::info("Ticker healthy.");
+        .then([&tick_count](int result) {
+          tick_count+=result;
+          if (tick_count == 4) logger::info("Ticker healthy.");
         })
         .get();
-    });
-    logger::info("callback setup");
-    while(is_running) {
-      this_thread::sleep_for(10ms);
-    }
-
-    return;
   });
+  logger::info("callback setup... sleeping forever");
 
-  return {shutdown, service_task};
+  // periodically check if service is still alive then try to shutdown cleanly
+  while (is_running) this_thread::sleep_for(100ms);
+  tick_shutdown(ctx, publisher, wsock);
+  return;
 };
 
 }  // namespace ticker_service

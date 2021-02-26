@@ -6,8 +6,9 @@ ExternalProject_Add(
   GIT_REPOSITORY "https://github.com/fmtlib/fmt/"
   GIT_TAG master
   GIT_PROGRESS true
+  TEST_COMMAND ""
   INSTALL_COMMAND ""
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "-DBUILD_TESTS=off"
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" "-DFMT_TEST=off" "-DFMT_INSTALL=off"
 )
 
 ExternalProject_Get_Property(fmtlib_git SOURCE_DIR)

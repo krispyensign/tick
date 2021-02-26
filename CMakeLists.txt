@@ -25,20 +25,16 @@ include(cmake/msgpack.cmake)
 include(cmake/cpprestsdk.cmake)
 externalproject_add_stepdependencies(spdlog build fmtlib)
 
+set(CMAKE_CXX_CPPCHECK "cppcheck" "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
+  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}rapidjson/*.h"
+  "--enable=all" "--inconclusive" "--suppress=missingIncludeSystem" "--report-progress"
+)
+message(INFO "${CMAKE_CXX_CPPCHECK}")
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
 add_dependencies(tick rapidjson backwardcpp cppzmq fmtlib spdlog msgpack cpprestsdk)
-
-if(NOT CMAKE_CXX_CPPCHECK)
-  set(CMAKE_CXX_CPPCHECK "cppcheck")
-endif()
-
-list(APPEND CMAKE_CXX_CPPCHECK "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
-  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}/*"
-  "--enable=all" "--inconclusive" "--check-config" "--suppress=missingIncludeSystem" "--report-progress"
-)
 
 target_include_directories(tick PUBLIC ${BACKWARDCPP_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIR}
   ${PC_LIBZMQ_INCLUDE_DIRS} ${CPPZMQ_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR}
