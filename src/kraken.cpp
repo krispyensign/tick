@@ -39,7 +39,7 @@ auto create_tick_sub_request(const vec<str>& pairs) -> str {
   // pairs: [pair ...]
   auto pairs_val = json::Value();
   pairs_val.SetArray();
-  for (auto& pair : pairs)
+  for (const auto& pair : pairs)
     pairs_val.PushBack(json::Value().SetString(json::StringRef(pair.c_str())), allocator);
   out_json.AddMember("pair", pairs_val, allocator);
 

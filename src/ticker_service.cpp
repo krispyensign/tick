@@ -132,7 +132,7 @@ auto tick_service(exchange_name ex, const service_config& conf, const atomic_boo
   logger::info("conf validated");
 
   // attempt to get the available pairs for websocket subscription
-  auto const pair_result = exchange::get_pairs_list(conf.api_url, conf.assets_path);
+  const auto pair_result = exchange::get_pairs_list(conf.api_url, conf.assets_path);
   logger::info("got pairs");
 
   // provision all the endpoints and connections
