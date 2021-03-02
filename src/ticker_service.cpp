@@ -145,10 +145,13 @@ auto tick_service(exchange_name ex, const service_config& conf, const atomic_boo
   wsock.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
     if (is_running)
       data.extract_string()
-        .then([&publisher](const str& msg) { return process_tick(publisher, msg) ? 1 : 0; })
-        .then([&tick_count](int result) {
-          tick_count += result;
-          if (tick_count == 4) logger::info("Ticker healthy.");
+        .then([&publisher](const str& msg) { return process_tick(publisher, msg); })
+        .then([&tick_count](bool result) {
+          if(result and tick_count < 4) ++tick_count;
+          if (tick_count == 4) {
+            logger::info("Ticker healthy.");
+            tick_count++;
+          }
         })
         .get();
   });
