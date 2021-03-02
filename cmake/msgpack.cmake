@@ -13,4 +13,4 @@ ExternalProject_Add(
 )
 
 ExternalProject_Get_Property(msgpack SOURCE_DIR)
-set(MSGPACK_INCLUDE_DIR ${SOURCE_DIR}/include/ CACHE INTERNAL "Path to include msgpack")
+set(MSGPACK_INCLUDE_DIR ${SOURCE_DIR}/include CACHE INTERNAL "Path to include msgpack")

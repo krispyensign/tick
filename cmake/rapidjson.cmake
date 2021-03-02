@@ -13,4 +13,4 @@ ExternalProject_Add(
 )
 
 ExternalProject_Get_Property(rapidjson SOURCE_DIR)
-set(RAPIDJSON_INCLUDE_DIR ${SOURCE_DIR}/include/ CACHE INTERNAL "Path to include rapidjson")
+set(RAPIDJSON_INCLUDE_DIR ${SOURCE_DIR}/include CACHE INTERNAL "Path to include rapidjson")

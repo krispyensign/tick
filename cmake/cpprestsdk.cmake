@@ -1,7 +1,7 @@
 include(ExternalProject)
 
-set(BUILD_TESTS off)
-set(BUILD_SAMPLES off)
+set(BUILD_TESTS CACHE INTERNAL off)
+set(BUILD_SAMPLES CACHE INTERNAL off)
 
 ExternalProject_Add(
   cpprestsdk
@@ -16,8 +16,8 @@ ExternalProject_Add(
 
 ExternalProject_Get_Property(cpprestsdk SOURCE_DIR)
 ExternalProject_Get_Property(cpprestsdk BINARY_DIR)
-set(CPPRESTSDK_INCLUDE_DIR ${SOURCE_DIR}/Release/include/ CACHE INTERNAL "Path to include cpprestsdk")
-set(CPPRESTSDK_LIBRARY_DIR ${BINARY_DIR}/Release/Binaries/ CACHE INTERNAL "Path to library cpprestsdk")
+set(CPPRESTSDK_INCLUDE_DIR ${SOURCE_DIR}/Release/include CACHE INTERNAL "Path to include cpprestsdk")
+set(CPPRESTSDK_LIBRARY_DIR ${BINARY_DIR}/Release/Binaries CACHE INTERNAL "Path to library cpprestsdk")
 
 # avoid errors defining targets twice
 if (TARGET libcpprest)

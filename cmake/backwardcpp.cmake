@@ -13,5 +13,5 @@ ExternalProject_Add(
 )
 
 ExternalProject_Get_Property(backwardcpp SOURCE_DIR)
-set(BACKWARDCPP_INCLUDE_DIR ${SOURCE_DIR}/ CACHE INTERNAL "Path to backwardcpp includes")
+set(BACKWARDCPP_INCLUDE_DIR ${SOURCE_DIR} CACHE INTERNAL "Path to backwardcpp includes")
 

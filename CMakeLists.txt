@@ -27,8 +27,8 @@ externalproject_add_stepdependencies(spdlog build fmtlib)
 
 set(CMAKE_CXX_CPPCHECK "cppcheck"
   "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
-  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}rapidjson/*"
-  "--suppress=*:${MSGPACK_INCLUDE_DIR}msgpack/*"
+  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}/rapidjson/*"
+  "--suppress=*:${MSGPACK_INCLUDE_DIR}/msgpack/*"
   "--enable=all"
   "--inconclusive"
   "--suppress=missingIncludeSystem"
@@ -53,7 +53,8 @@ if(APPLE)
   target_link_libraries(tick "-framework System")
 else()
   include(cmake/findunwind.cmake)
-  target_link_libraries(tick unwind)
+  add_dependencies(tick unwind)
+  target_link_libraries(tick libunwind)
 endif()
 
 target_link_libraries(tick
