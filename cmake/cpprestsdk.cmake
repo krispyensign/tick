@@ -1,5 +1,8 @@
 include(ExternalProject)
 
+set(BUILD_TESTS off)
+set(BUILD_SAMPLES off)
+
 ExternalProject_Add(
   cpprestsdk
   PREFIX ${CMAKE_BINARY_DIR}/cpprestsdk

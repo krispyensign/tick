@@ -32,6 +32,7 @@ set(CMAKE_CXX_CPPCHECK "cppcheck"
   "--enable=all"
   "--inconclusive"
   "--suppress=missingIncludeSystem"
+  "--suppress=unmatchedSuppression"
   "--report-progress"
 )
 
