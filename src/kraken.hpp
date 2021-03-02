@@ -16,7 +16,7 @@ inline auto create_tick_unsub_request() -> str {
   }
 }
 )EOF";
-};
+}
 
 }  // namespace kraken
 

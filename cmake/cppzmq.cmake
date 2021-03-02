@@ -6,10 +6,11 @@ ExternalProject_Add(
   GIT_REPOSITORY "https://github.com/zeromq/cppzmq"
   GIT_TAG master
   GIT_PROGRESS true
+  CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   TEST_COMMAND ""
   INSTALL_COMMAND ""
-  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" 
+  CMAKE_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}"
 )
 
 ExternalProject_Get_Property(cppzmq SOURCE_DIR)

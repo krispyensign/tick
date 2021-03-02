@@ -25,11 +25,16 @@ include(cmake/msgpack.cmake)
 include(cmake/cpprestsdk.cmake)
 externalproject_add_stepdependencies(spdlog build fmtlib)
 
-set(CMAKE_CXX_CPPCHECK "cppcheck" "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
-  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}rapidjson/*.h"
-  "--suppress=*:${MSGPACK_INCLUDE_DIR}"
-  "--enable=all" "--inconclusive" "--suppress=missingIncludeSystem" "--report-progress"
+set(CMAKE_CXX_CPPCHECK "cppcheck"
+  "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
+  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}rapidjson/*"
+  "--suppress=*:${MSGPACK_INCLUDE_DIR}msgpack/*"
+  "--enable=all"
+  "--inconclusive"
+  "--suppress=missingIncludeSystem"
+  "--report-progress"
 )
+
 message(INFO "${CMAKE_CXX_CPPCHECK}")
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
@@ -46,8 +51,8 @@ if(APPLE)
   message(STATUS "Using System.Framework")
   target_link_libraries(tick "-framework System")
 else()
-  find_package(unwind REQUIRED)
-  target_link_libraries(tick libunwind)
+  include(cmake/findunwind.cmake)
+  target_link_libraries(tick unwind)
 endif()
 
 target_link_libraries(tick

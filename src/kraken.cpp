@@ -74,7 +74,7 @@ auto parse_json(const str& response_text) -> vec<str> {
 
   // return the vector
   return pair_list;
-};
+}
 
 auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
   logger::info("Getting kraken pairs list");
@@ -93,7 +93,7 @@ auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
 
   // extract and parse
   return parse_json(response.extract_string().get());
-};
+}
 
 auto is_ticker(const json::Value& json) -> bool {
   // validate the payload has the following fields
@@ -104,7 +104,7 @@ auto is_ticker(const json::Value& json) -> bool {
     if (not json.HasMember(memb)) return false;
 
   return true;
-};
+}
 
 auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
   auto msg = json::Document();
@@ -136,5 +136,5 @@ auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
     .ask = atof(payload["a"][0].GetString()),
     .bid = atof(payload["b"][0].GetString()),
   };
-};
+}
 }  // namespace kraken

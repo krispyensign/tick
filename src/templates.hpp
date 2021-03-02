@@ -1,6 +1,5 @@
 #ifndef templates_hpp
 #define templates_hpp
-#pragma region includes
 
 #include <initializer_list>
 #include <algorithm>
@@ -11,9 +10,7 @@
 using namespace std;
 
 #include <spdlog/spdlog.h>
-#pragma endregion
 
-#pragma region type-helpers
 // helper type for the visitor #4
 template<typename> inline constexpr bool always_false_v = false;
 
@@ -28,9 +25,6 @@ auto type_match(T tin, Funcs... funcs) {
   return std::visit(exhaustive{funcs...}, tin);
 }
 
-#pragma endregion
-
-#pragma region others
 template <typename A>
 auto wrap_error(A a)->decltype(a()) {
   try {
@@ -40,9 +34,7 @@ auto wrap_error(A a)->decltype(a()) {
     throw e;
   }
 }
-#pragma endregion
 
-#pragma region higher order functions
 template <typename CONTAINER, typename NEW_CONTAINER, typename LAMBDA>
 auto fold(CONTAINER container, NEW_CONTAINER new_container, LAMBDA lambda) -> NEW_CONTAINER {
   return std::accumulate(container.begin(), container.end(), new_container, lambda);
@@ -61,6 +53,5 @@ auto filter(CONTAINER&& container, LAMBDA&& lambda) -> CONTAINER&& {
     std::copy_if(container.begin(), container.end(), back_inserter(w), lambda);
     return w;
 }
-#pragma endregion
 
 #endif

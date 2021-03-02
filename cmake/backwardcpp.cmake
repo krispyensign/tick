@@ -6,6 +6,7 @@ ExternalProject_Add(
   GIT_REPOSITORY "https://github.com/bombela/backward-cpp"
   GIT_TAG master
   GIT_PROGRESS true
+  CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   TEST_COMMAND ""
   INSTALL_COMMAND ""

@@ -1,11 +1,12 @@
 #ifndef base_types_hpp
 #define base_types_hpp
 
+#include <stdexcept>
 #include <string>
 #include <variant>
+#include <vector>
 using namespace std;
 
-#pragma region base_type_aliases
 typedef int i16;
 typedef unsigned int u16;
 typedef long i32;
@@ -16,9 +17,6 @@ typedef float f32;
 typedef double f64;
 typedef char *c_str;
 typedef string str;
-#pragma endregion
-
-#pragma region namespace_aliases
 
 using error = runtime_error;
 

@@ -1,5 +1,6 @@
 #include <cpprest/ws_client.h>
 
+#include <thread>
 #include <zmq.hpp>
 
 #include "kraken.hpp"
@@ -33,7 +34,7 @@ auto select_exchange(exchange_name ex) -> void {
       exchange::parse_event = kraken::parse_event;
       exchange::create_tick_unsub_request = kraken::create_tick_unsub_request;
   }
-};
+}
 
 auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) -> bool {
   // pack it up and send it
@@ -41,7 +42,7 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   msgpack::pack(buf, event);
   ticker_publisher.send(zmq::message_t(buf.str()), zmq::send_flags::none);
   return true;
-};
+}
 
 auto process_tick(zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
   // parse and dispatch result
@@ -55,7 +56,7 @@ auto process_tick(zmq::socket_t& ticker_publisher, const str& incoming_msg) -> b
       logger::info(e);
       return false;
     });
-};
+}
 
 auto validate(const service_config& conf) -> bool {
   if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
@@ -66,7 +67,7 @@ auto validate(const service_config& conf) -> bool {
     throw error("Invalid binding uri for config");
   }
   return true;
-};
+}
 
 auto ws_send(ws::client& ticker_ws, const str& in_msg) -> void {
   // create a websocket envolope
@@ -75,7 +76,7 @@ auto ws_send(ws::client& ticker_ws, const str& in_msg) -> void {
   out_msg.set_utf8_message(in_msg);
   // send it
   ticker_ws.send(out_msg).get();
-};
+}
 
 auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::socket_t {
   // get a publisher socket
@@ -87,7 +88,7 @@ auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::so
   logger::info("socket bound");
 
   return publisher;
-};
+}
 
 auto start_websocket(const service_config& conf, const vec<str>& pair_result) -> ws::client {
   // configure websocket client
@@ -108,7 +109,7 @@ auto start_websocket(const service_config& conf, const vec<str>& pair_result) ->
   ws_send(wsock, subscription);
 
   return wsock;
-};
+}
 
 auto tick_shutdown(zmq::context_t& ctx, zmq::socket_t& publisher, ws::client& wsock) -> void {
   // stop the work vent first
@@ -157,6 +158,6 @@ auto tick_service(exchange_name ex, const service_config& conf, const atomic_boo
   while (is_running) this_thread::sleep_for(100ms);
   tick_shutdown(ctx, publisher, wsock);
   return;
-};
+}
 
 }  // namespace ticker_service
