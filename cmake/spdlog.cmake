@@ -6,7 +6,6 @@ ExternalProject_Add(
   GIT_REPOSITORY "https://github.com/gabime/spdlog"
   GIT_TAG v1.x
   GIT_PROGRESS true
-  CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   TEST_COMMAND ""
   INSTALL_COMMAND ""

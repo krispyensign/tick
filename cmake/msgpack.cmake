@@ -6,7 +6,6 @@ ExternalProject_Add(
   GIT_REPOSITORY "https://github.com/msgpack/msgpack-c.git"
   GIT_TAG cpp_master
   GIT_PROGRESS true
-  CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   TEST_COMMAND ""
   INSTALL_COMMAND ""
