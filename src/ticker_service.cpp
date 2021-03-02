@@ -1,38 +1,30 @@
-#include <cpprest/ws_client.h>
-
 #include <thread>
+
+#include <cpprest/ws_client.h>
 #include <zmq.hpp>
 
 #include "kraken.hpp"
 #include "templates.hpp"
-
-namespace ws {
-using client = web::websockets::client::websocket_callback_client;
-using in_message = web::websockets::client::websocket_incoming_message;
-using out_message = web::websockets::client::websocket_outgoing_message;
-using config = web::websockets::client::websocket_client_config;
-}  // namespace ws
-
-namespace logger {
-using namespace spdlog;
-}
-
-namespace exchange {
-function<str(const vec<str>&)> create_tick_sub_request;
-function<vec<str>(const str&, const str&)> get_pairs_list;
-function<var<pair_price_update, str>(const str&)> parse_event;
-function<str(void)> create_tick_unsub_request;
-}  // namespace exchange
+#include "ns_helper.hpp"
 
 namespace ticker_service {
 
-auto select_exchange(exchange_name ex) -> void {
+struct exchange_interface {
+  function<str(const vec<str>&)> create_tick_sub_request;
+  function<vec<str>(const str&, const str&)> get_pairs_list;
+  function<var<pair_price_update, str>(const str&)> parse_event;
+  function<str(void)> create_tick_unsub_request;
+};
+
+auto select_exchange(exchange_name ex) -> exchange_interface {
   switch (ex) {
     case KRAKEN:
-      exchange::create_tick_sub_request = kraken::create_tick_sub_request;
-      exchange::get_pairs_list = kraken::get_pairs_list;
-      exchange::parse_event = kraken::parse_event;
-      exchange::create_tick_unsub_request = kraken::create_tick_unsub_request;
+      return {
+        .create_tick_sub_request = kraken::create_tick_sub_request,
+        .get_pairs_list = kraken::get_pairs_list,
+        .parse_event = kraken::parse_event,
+        .create_tick_unsub_request = kraken::create_tick_unsub_request,
+      };
   }
 }
 
@@ -44,10 +36,10 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   return true;
 }
 
-auto process_tick(zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
+auto process_tick(const exchange_interface& ex, zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
   // parse and dispatch result
   return type_match(
-    exchange::parse_event(incoming_msg),
+    ex.parse_event(incoming_msg),
     // if it's a valid event then queue
     [&ticker_publisher](const pair_price_update& p) { return send_tick(ticker_publisher, p); },
 
@@ -90,7 +82,7 @@ auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::so
   return publisher;
 }
 
-auto start_websocket(const service_config& conf, const vec<str>& pair_result) -> ws::client {
+auto start_websocket(const exchange_interface& ex, const service_config& conf, const vec<str>& pair_result) -> ws::client {
   // configure websocket client
   auto ws_conf = ws::config();
   ws_conf.set_validate_certificates(false);
@@ -102,7 +94,7 @@ auto start_websocket(const service_config& conf, const vec<str>& pair_result) ->
   logger::info("websocket connected");
 
   // serialize the subscription request and send it off
-  auto subscription = exchange::create_tick_sub_request(pair_result);
+  auto subscription = ex.create_tick_sub_request(pair_result);
   logger::info("sending subscription:");
   logger::info(subscription);
 
@@ -111,10 +103,10 @@ auto start_websocket(const service_config& conf, const vec<str>& pair_result) ->
   return wsock;
 }
 
-auto tick_shutdown(zmq::context_t& ctx, zmq::socket_t& publisher, ws::client& wsock) -> void {
+auto tick_shutdown(const exchange_interface& ex, zmq::context_t& ctx, zmq::socket_t& publisher, ws::client& wsock) -> void {
   // stop the work vent first
   logger::info("Got shutdown signal");
-  ws_send(wsock, exchange::create_tick_unsub_request());
+  ws_send(wsock, ex.create_tick_unsub_request());
   this_thread::sleep_for(100ms);
   wsock.close();
 
@@ -124,28 +116,28 @@ auto tick_shutdown(zmq::context_t& ctx, zmq::socket_t& publisher, ws::client& ws
   logger::info("Shutdown complete");
 }
 
-auto tick_service(exchange_name ex, const service_config& conf, const atomic_bool& is_running)
+auto tick_service(exchange_name ex_name, const service_config& conf, const atomic_bool& is_running)
   -> void {
   // configure exchange and perform basic validation on the config
-  select_exchange(ex);
+  auto ex = select_exchange(ex_name);
   validate(conf);
   logger::info("conf validated");
 
   // attempt to get the available pairs for websocket subscription
-  const auto pair_result = exchange::get_pairs_list(conf.api_url, conf.assets_path);
+  const auto pair_result = ex.get_pairs_list(conf.api_url, conf.assets_path);
   logger::info("got pairs");
 
   // provision all the endpoints and connections
   auto ctx = zmq::context_t(1);
   auto publisher = start_publisher(conf, ctx);
-  auto wsock = start_websocket(conf, pair_result);
+  auto wsock = start_websocket(ex, conf, pair_result);
 
   // setup message callback
   auto tick_count = 0;
-  wsock.set_message_handler([&is_running, &publisher, &tick_count](const ws::in_message data) {
+  wsock.set_message_handler([ex, &is_running, &publisher, &tick_count](const ws::in_message data) {
     if (is_running)
       data.extract_string()
-        .then([&publisher](const str& msg) { return process_tick(publisher, msg); })
+        .then([ex, &publisher](const str& msg) { return process_tick(ex, publisher, msg); })
         .then([&tick_count](bool result) {
           if(result and tick_count < 4) ++tick_count;
           if (tick_count == 4) {
@@ -159,7 +151,7 @@ auto tick_service(exchange_name ex, const service_config& conf, const atomic_boo
 
   // periodically check if service is still alive then try to shutdown cleanly
   while (is_running) this_thread::sleep_for(100ms);
-  tick_shutdown(ctx, publisher, wsock);
+  tick_shutdown(ex, ctx, publisher, wsock);
   return;
 }
 

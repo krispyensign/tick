@@ -6,24 +6,8 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
-#include <spdlog/spdlog.h>
 
-namespace json {
-using namespace rapidjson;
-}
-
-namespace logger {
-using namespace spdlog;
-}
-
-namespace rest {
-using methods = web::http::methods;
-using status_codes = web::http::status_codes;
-using client = web::http::client::http_client;
-using config = web::http::client::http_client_config;
-using response = web::http::http_response;
-
-}  // namespace rest
+#include "ns_helper.hpp"
 
 namespace kraken {
 

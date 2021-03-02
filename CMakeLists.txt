@@ -11,9 +11,24 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
-find_package(Boost REQUIRED COMPONENTS iostreams random system thread filesystem chrono
-  atomic date_time regex unit_test_framework log log_setup
+find_package(OpenSSL REQUIRED COMPONENTS
+  SSL
+  Crypto
+)
+
+find_package(Boost REQUIRED COMPONENTS
+  iostreams
+  random
+  system
+  thread
+  filesystem
+  chrono
+  atomic
+  date_time
+  regex
+  unit_test_framework
+  log
+  log_setup
 )
 
 include(cmake/cppzmq.cmake)
@@ -36,20 +51,26 @@ set(CMAKE_CXX_CPPCHECK "cppcheck"
   "--report-progress"
 )
 
-message(INFO "${CMAKE_CXX_CPPCHECK}")
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
 add_dependencies(tick rapidjson backwardcpp cppzmq fmtlib spdlog msgpack cpprestsdk)
 
-target_include_directories(tick PUBLIC ${BACKWARDCPP_INCLUDE_DIR} ${RAPIDJSON_INCLUDE_DIR}
-  ${PC_LIBZMQ_INCLUDE_DIRS} ${CPPZMQ_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR}
-  ${FMTLIB_INCLUDE_DIR} ${SPDLOG_INCLUDE_DIR} ${MSGPACK_INCLUDE_DIR} ${CPPRESTSDK_INCLUDE_DIR}
+target_include_directories(tick PUBLIC
+  ${BACKWARDCPP_INCLUDE_DIR}
+  ${RAPIDJSON_INCLUDE_DIR}
+  ${PC_LIBZMQ_INCLUDE_DIRS}
+  ${CPPZMQ_INCLUDE_DIR}
+  ${OPENSSL_INCLUDE_DIR}
+  ${BOOST_INCLUDE_DIR}
+  ${FMTLIB_INCLUDE_DIR}
+  ${SPDLOG_INCLUDE_DIR}
+  ${MSGPACK_INCLUDE_DIR}
+  ${CPPRESTSDK_INCLUDE_DIR}
 )
 
 if(APPLE)
-  message(STATUS "Using System.Framework")
   target_link_libraries(tick "-framework System")
 else()
   include(cmake/findunwind.cmake)
@@ -58,9 +79,18 @@ else()
 endif()
 
 target_link_libraries(tick
-  Boost::boost Boost::random Boost::system Boost::thread Boost::filesystem Boost::chrono
-  Boost::atomic Boost::date_time Boost::regex Boost::log
-  OpenSSL::Crypto OpenSSL::SSL
+  Boost::boost
+  Boost::random
+  Boost::system
+  Boost::thread
+  Boost::filesystem
+  Boost::chrono
+  Boost::atomic
+  Boost::date_time
+  Boost::regex
+  Boost::log
+  OpenSSL::Crypto
+  OpenSSL::SSL
   libcpprest
   libzmq
   fmtlib
