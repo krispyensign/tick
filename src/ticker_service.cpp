@@ -98,12 +98,9 @@ auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_reque
   return wsock;
 }
 
-auto setup_ws_handler(
-  ws::client& wsock,
-  const atomic_bool& is_running,
-  zmq::socket_t& publisher,
-  const function<var<pair_price_update, str>(const str&)>& parse_event_callback
-) -> void {
+auto setup_ws_handler(ws::client& wsock, const atomic_bool& is_running, zmq::socket_t& publisher,
+                      const function<var<pair_price_update, str>(const str&)>& parse_event_callback)
+  -> void {
   auto tick_count = 0;
   wsock.set_message_handler([&](const ws::in_message data) {
     if (is_running)
@@ -121,8 +118,8 @@ auto setup_ws_handler(
   return;
 }
 
-auto tick_service(exchange_name ex_name, const service_config& conf, const atomic_bool& is_running)
-  -> void {
+auto tick_service(const exchange_name& ex_name, const service_config& conf,
+                  const atomic_bool& is_running) -> void {
   // configure exchange and perform basic validation on the config
   const auto [create_tick_sub_request, get_pairs_list, parse_event, create_tick_unsub_request] =
     select_exchange(ex_name);
