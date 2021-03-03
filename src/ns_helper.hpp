@@ -1,14 +1,11 @@
 #ifndef ns_helper_hpp
 #define ns_helper_hpp
 
+#include <cpprest/http_client.h>
+#include <cpprest/http_msg.h>
 #include <cpprest/ws_client.h>
-#include <spdlog/spdlog.h>
 #include <rapidjson/rapidjson.h>
-
-#include "base_types.hpp"
-#include "cpprest/http_client.h"
-#include "cpprest/http_msg.h"
-#include "types.hpp"
+#include <spdlog/spdlog.h>
 
 namespace ws {
 using client = web::websockets::client::websocket_callback_client;

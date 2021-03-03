@@ -1,19 +1,16 @@
 #define BACKWARD_HAS_LIBUNWIND 1
 #include <spdlog/spdlog.h>
 
+#include <backward.hpp>
 #include <future>
 
-#include "backward.hpp"
+#include "ns_helper.hpp"
 #include "ticker_service.hpp"
 
 // TODO: add main argument parser and options file
 
 // setup stacktracing
 backward::SignalHandling sh;
-
-namespace logger {
-using namespace spdlog;
-}
 
 // handlers for graceful shutdown on ctrl-c
 namespace {
