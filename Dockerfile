@@ -35,4 +35,4 @@ RUN mkdir /code/build/
 WORKDIR /code/build/
 
 RUN scan-build cmake ..
-RUN scan-build make -j10
+RUN scan-build make
