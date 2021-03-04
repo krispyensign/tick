@@ -36,8 +36,8 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   return true;
 }
 
-auto process_tick(const function<var<pair_price_update, str>(const str&)>& parse_event_callback, zmq::socket_t& ticker_publisher,
-                  const str& incoming_msg) -> bool {
+auto process_tick(const function<var<pair_price_update, str>(const str&)>& parse_event_callback,
+                  zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
   // parse and dispatch result
   return type_match(
     parse_event_callback(incoming_msg),
@@ -105,24 +105,22 @@ auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_reque
   return wsock;
 }
 
-auto setup_ws_handler(ws::client& wsock, const atomic_bool& is_running, zmq::socket_t& publisher,
-                      const function<var<pair_price_update, str>(const str&)>& parse_event_callback)
-  -> void {
+auto ws_handler(const atomic_bool& is_running, zmq::socket_t& publisher,
+                const function<var<pair_price_update, str>(const str&)>& parse_event_callback)
+  -> function<void(const ws::in_message data)> {
   auto tick_count = 0;
-  wsock.set_message_handler([&](const ws::in_message data) {
+  return [&](const ws::in_message data) {
     if (is_running)
       data.extract_string()
-        .then([&](const str& msg) { return process_tick(parse_event_callback, publisher, msg); })
-        .then([&](const bool result) {
-          if (result and tick_count < 4) ++tick_count;
+        .then([&](const str& msg) {
+          if (process_tick(parse_event_callback, publisher, msg) and tick_count < 4) ++tick_count;
           if (tick_count == 4) {
             logger::info("Ticker healthy.");
             tick_count++;
           }
         })
         .get();
-  });
-  return;
+  };
 }
 
 auto tick_service(const exchange_name& ex_name, const service_config& conf,
@@ -143,10 +141,11 @@ auto tick_service(const exchange_name& ex_name, const service_config& conf,
   auto publisher = start_publisher(conf, ctx);
   auto wsock = start_websocket(create_tick_sub_request, conf, pair_result);
 
-  setup_ws_handler(wsock, is_running, publisher, parse_event);
-  logger::info("callback setup... sleeping forever");
+  wsock.set_message_handler(ws_handler(is_running, publisher, parse_event));
+  logger::info("callback setup");
 
   // periodically check if service is still alive then try to shutdown cleanly
+  logger::info("sleeping, waiting for shutdown");
   while (is_running) this_thread::sleep_for(100ms);
 
   // stop the work vent first
@@ -159,8 +158,6 @@ auto tick_service(const exchange_name& ex_name, const service_config& conf,
   publisher.close();
   ctx.shutdown();
   logger::info("Shutdown complete");
-
-  return;
 }
 
 }  // namespace ticker_service

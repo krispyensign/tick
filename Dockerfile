@@ -6,6 +6,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update &&\
         subversion\
         gcc-10\
         g++-10\
+        clang-tools\
         git\
         cmake\
         ninja-build\
@@ -33,5 +34,5 @@ RUN ./getstuff.sh
 RUN mkdir /code/build/
 WORKDIR /code/build/
 
-RUN cmake ..
-RUN make -j10
+RUN scan-build cmake ..
+RUN scan-build make -j10
