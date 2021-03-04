@@ -40,7 +40,7 @@ auto main(i16 argc, c_str argv[]) -> i16 {
 
   } catch (const exception& e) {
     logger::error(e.what());
-    throw e;
+    throw;
   }
   return 0;
 }

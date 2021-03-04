@@ -11,9 +11,15 @@ RUN apt-get install -y pkgconf
 RUN apt-get install -y libz-dev
 RUN apt-get install -y libunwind-dev
 RUN apt-get install -y libcpprest-dev
+RUN apt-get install -y libzmq5
+RUN apt-get install -y libzmq5-dev
+RUN apt-get install -y cppcheck
+RUN apt-get install -y subversion wget
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20
 RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20
-COPY . /code
+COPY . /code/
+WORKDIR /code/
+RUN ./getstuff.sh
 RUN mkdir /code/build/
 WORKDIR /code/build/
 RUN cmake ..
