@@ -29,6 +29,7 @@ jobs:
           libssl-dev\
           ninja-build\
           cppcheck\
+          libunwind-dev\
           libboost-atomic-dev\
           libboost-thread-dev\
           libboost-system-dev\
