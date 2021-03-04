@@ -30,6 +30,7 @@ jobs:
           ninja-build\
           cppcheck\
           libunwind-dev\
+          libzmq5\
           libboost-atomic-dev\
           libboost-thread-dev\
           libboost-system-dev\
