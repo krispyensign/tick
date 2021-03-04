@@ -19,8 +19,8 @@ jobs:
 
     - name: Install Pre-Requisites
       run: |
-        DEBIAN_FRONTEND=noninteractive apt-get update &&\
-        DEBIAN_FRONTEND=noninteractive apt-get install -y\
+        sudo DEBIAN_FRONTEND=noninteractive apt-get update &&\
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y\
             wget\
             subversion\
             gcc-10\
@@ -36,10 +36,10 @@ jobs:
             libzmq5\
             libzmq5-dev\
             libcpprest-dev &&\
-        apt-get remove -y gcc-9 &&\
-        apt autoremove -y &&\
-        update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20 &&\
-        update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20 &&\
+        sudo apt-get remove -y gcc-9 &&\
+        sudo apt autoremove -y &&\
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20 &&\
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20 &&\
         ./getstuff.sh
 
     - name: Create Build Environment
