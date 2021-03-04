@@ -3,7 +3,6 @@ project(tick VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CONAN_DISABLE_CHECK_COMPILER 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MSGPACK_CXX17 ON)
 set(FMT_HEADER_ONLY ON)
@@ -12,32 +11,16 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+include(cmake/findzmq.cmake)
+include_directories(third_party)
+
 set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
 find_library(CPPREST_LIB cpprest)
 find_package(cpprestsdk REQUIRED NAMES cpprestsdk cpprest)
+find_package(OpenSSL REQUIRED COMPONENTS SSL Crypto)
 
-find_package(OpenSSL REQUIRED COMPONENTS
-  SSL
-  Crypto
-)
-
-find_package(Boost REQUIRED COMPONENTS
-  iostreams
-  random
-  system
-  thread
-  filesystem
-  chrono
-  atomic
-  date_time
-  regex
-  unit_test_framework
-  log
-  log_setup
-)
-
-include(cmake/findzmq.cmake)
-include_directories(third_party)
+find_package(Boost REQUIRED COMPONENTS random system thread filesystem chrono atomic
+  date_time regex)
 
 set(CMAKE_CXX_CPPCHECK "cppcheck"
   "--enable=all"
@@ -77,7 +60,6 @@ target_link_libraries(tick
   Boost::atomic
   Boost::date_time
   Boost::regex
-  Boost::log
   OpenSSL::Crypto
   OpenSSL::SSL
   ${CPPREST_LIB}

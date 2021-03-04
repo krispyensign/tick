@@ -1,5 +1,8 @@
 FROM ubuntu:latest
 
+COPY . /code/
+WORKDIR /code/
+
 RUN DEBIAN_FRONTEND=noninteractive apt-get update &&\
     DEBIAN_FRONTEND=noninteractive apt-get install -y\
         wget\
@@ -16,23 +19,15 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get update &&\
         libunwind-dev\
         libzmq5\
         libzmq5-dev\
-        libcpprest-dev\
-        libboost-iostreams-dev\
-        libboost-test-dev\
-        libboost-log-dev &&\
+        libcpprest-dev &&\
     apt-get remove -y gcc-9 &&\
-    apt autoremove -y
-
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20
-
-COPY . /code/
-WORKDIR /code/
+    apt autoremove -y &&\
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20 &&\
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20 &&\
+    mkdir /code/build/
 
 RUN ./getstuff.sh
 
-RUN mkdir /code/build/
 WORKDIR /code/build/
 
-RUN scan-build cmake ..
-RUN scan-build make
+RUN scan-build cmake .. && scan-build make
