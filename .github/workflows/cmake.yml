@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: install everything
+    - name: Install Pre-Requisites
       run: |
         sudo apt-get update
         sudo apt-get install -y \
@@ -67,7 +67,7 @@ jobs:
       working-directory: ${{github.workspace}}/build
       shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: make -j4
+      run: make
 
     - name: Test
       working-directory: ${{github.workspace}}/build
