@@ -18,6 +18,13 @@ auto select_exchange(exchange_name ex)
         kraken::parse_event,
         kraken::create_tick_unsub_request,
       };
+    default:
+      return {
+        kraken::create_tick_sub_request,
+        kraken::get_pairs_list,
+        kraken::parse_event,
+        kraken::create_tick_unsub_request,
+      };
   }
 }
 
