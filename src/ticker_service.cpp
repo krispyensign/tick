@@ -36,7 +36,7 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   return true;
 }
 
-auto process_tick(const auto& parse_event_callback, zmq::socket_t& ticker_publisher,
+auto process_tick(const function<var<pair_price_update, str>(const str&)>& parse_event_callback, zmq::socket_t& ticker_publisher,
                   const str& incoming_msg) -> bool {
   // parse and dispatch result
   return type_match(

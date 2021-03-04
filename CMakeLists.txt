@@ -6,10 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CONAN_DISABLE_CHECK_COMPILER 1)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MSGPACK_CXX17 ON)
+set(FMT_HEADER_ONLY ON)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug)
 endif()
+
+set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
+find_library(CPPREST_LIB cpprest)
+find_package(cpprestsdk REQUIRED NAMES cpprestsdk cpprest)
 
 find_package(OpenSSL REQUIRED COMPONENTS
   SSL
@@ -31,21 +36,13 @@ find_package(Boost REQUIRED COMPONENTS
   log_setup
 )
 
-include(cmake/cppzmq.cmake)
-include(cmake/backwardcpp.cmake)
-include(cmake/rapidjson.cmake)
-include(cmake/fmtlib.cmake)
-include(cmake/spdlog.cmake)
-include(cmake/msgpack.cmake)
-include(cmake/cpprestsdk.cmake)
-externalproject_add_stepdependencies(spdlog build fmtlib)
+include(cmake/findzmq.cmake)
+include_directories(third_party)
 
 set(CMAKE_CXX_CPPCHECK "cppcheck"
-  "--suppress=*:${CPPRESTSDK_INCLUDE_DIR}/*"
-  "--suppress=*:${RAPIDJSON_INCLUDE_DIR}/rapidjson/*"
-  "--suppress=*:${MSGPACK_INCLUDE_DIR}/msgpack/*"
   "--enable=all"
   "--inconclusive"
+  "--suppress=preprocessorErrorDirective"
   "--suppress=missingIncludeSystem"
   "--suppress=unmatchedSuppression"
   "--report-progress"
@@ -55,25 +52,18 @@ add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra 
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
-add_dependencies(tick cppzmq rapidjson backwardcpp fmtlib spdlog msgpack cpprestsdk)
 
 target_include_directories(tick PUBLIC
-  ${BACKWARDCPP_INCLUDE_DIR}
-  ${RAPIDJSON_INCLUDE_DIR}
   ${PC_LIBZMQ_INCLUDE_DIRS}
-  ${CPPZMQ_INCLUDE_DIR}
   ${OPENSSL_INCLUDE_DIR}
   ${BOOST_INCLUDE_DIR}
-  ${FMTLIB_INCLUDE_DIR}
-  ${SPDLOG_INCLUDE_DIR}
-  ${MSGPACK_INCLUDE_DIR}
   ${CPPRESTSDK_INCLUDE_DIR}
 )
 
 if(APPLE)
   target_link_libraries(tick "-framework System")
 else()
-  include(cmake/unwind.cmake)
+  include(cmake/findunwind.cmake)
   target_link_libraries(tick libunwind)
 endif()
 
@@ -90,7 +80,6 @@ target_link_libraries(tick
   Boost::log
   OpenSSL::Crypto
   OpenSSL::SSL
-  libcpprest
+  ${CPPREST_LIB}
   libzmq
-  fmtlib
 )
