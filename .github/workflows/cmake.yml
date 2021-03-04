@@ -37,7 +37,7 @@ jobs:
           libboost-iostreams-dev\
           libboost-test-dev\
           libboost-log-dev
-        sudo apt-get remove -y gcc-9
+        sudo apt-get remove -y gcc-9 && sudo apt-get autoremove -y
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20
         ./getstuff.sh
