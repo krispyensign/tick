@@ -55,7 +55,7 @@ add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra 
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
-add_dependencies(tick rapidjson backwardcpp cppzmq fmtlib spdlog msgpack cpprestsdk)
+add_dependencies(tick cppzmq rapidjson backwardcpp fmtlib spdlog msgpack cpprestsdk)
 
 target_include_directories(tick PUBLIC
   ${BACKWARDCPP_INCLUDE_DIR}
