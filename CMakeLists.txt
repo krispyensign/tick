@@ -73,8 +73,7 @@ target_include_directories(tick PUBLIC
 if(APPLE)
   target_link_libraries(tick "-framework System")
 else()
-  include(cmake/findunwind.cmake)
-  add_dependencies(tick unwind)
+  include(cmake/unwind.cmake)
   target_link_libraries(tick libunwind)
 endif()
 

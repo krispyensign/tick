@@ -1,36 +1,21 @@
-include(ExternalProject)
-set(env{_XOPEN_SOURCE} on)
-ExternalProject_Add(
-  unwind
-  PREFIX ${CMAKE_BINARY_DIR}/unwind
-  GIT_REPOSITORY "https://github.com/libunwind/libunwind"
-  GIT_TAG master
-  GIT_PROGRESS true
-  CONFIGURE_COMMAND ./autogen.sh COMMAND "./configure"
-  INSTALL_COMMAND ""
-  TEST_COMMAND ""
-  BUILD_IN_SOURCE 1
-  BUILD_COMMAND "make"
-)
+set(PKG_CONFIG_USE_CMAKE_PREFIX_PATH ON)
 
-ExternalProject_Get_Property(unwind SOURCE_DIR)
-ExternalProject_Get_Property(unwind BINARY_DIR)
-set(UNWIND_INCLUDE_DIR ${SOURCE_DIR}/include CACHE INTERNAL "Path to include unwind")
-set(UNWIND_LIBRARY_DIR ${BINARY_DIR} CACHE INTERNAL CACHE INTERNAL "Path to library unwind")
+find_package(PkgConfig)
+pkg_check_modules(PC_LIBUNWIND QUIET libunwind)
 
-# avoid errors defining targets twice
+set(Unwind_VERSION ${PC_LIBUNWIND_VERSION})
+find_library(Unwind_LIBRARY NAMES libunwind.so libunwind.dylib libunwind.dll
+             PATHS ${PC_LIBUNWIND_LIBDIR} ${PC_LIBUNWIND_LIBRARY_DIRS})
+
+if(Unwind_LIBRARY)
+    set(Unwind_FOUND ON)
+endif()
+
 if (TARGET libunwind)
+    # avoid errors defining targets twice
     return()
 endif()
 
 add_library(libunwind SHARED IMPORTED)
-add_dependencies(libunwind unwind)
-
-if(APPLE)
-set(SUFFIX "dylib")
-elseif(WIN32)
-set(SUFFIX "dll")
-else()
-set(SUFFIX "so")
-endif()
-set_property(TARGET libunwind PROPERTY IMPORTED_LOCATION "${UNWIND_LIBRARY_DIR}/libunwind.${SUFFIX}")
+set_property(TARGET libunwind PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${PC_LIBUNWIND_INCLUDE_DIRS})
+set_property(TARGET libunwind PROPERTY IMPORTED_LOCATION ${Unwind_LIBRARY})
