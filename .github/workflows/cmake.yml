@@ -32,7 +32,6 @@ jobs:
           libzmq5\
           libzmq5-dev\
           libcpprest-dev\
-          boost-iostreams-dev\
           wget\
           subversion
         sudo apt-get remove -y gcc-9
