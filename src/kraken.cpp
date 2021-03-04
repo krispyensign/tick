@@ -6,37 +6,33 @@
 #include <rapidjson/writer.h>
 
 #include "ns_helper.hpp"
+#include "spdlog/fmt/bundled/format.h"
 
 namespace kraken {
 
+auto create_tick_unsub_request() -> str {
+  return R"EOF(
+    {
+      "event": "unsubscribe",
+      "subscription": {
+        "name": "ticker"
+      }
+    }
+  )EOF";
+}
+
 auto create_tick_sub_request(const vec<str>& pairs) -> str {
   // allocate root dom
-  auto out_json = json::Document();
-  out_json.SetObject();
-  auto& allocator = out_json.GetAllocator();
-
-  // event: "subscribe"
-  out_json.AddMember("event", json::Value().SetString("subscribe"), allocator);
-
-  // pairs: [pair ...]
-  auto pairs_val = json::Value();
-  pairs_val.SetArray();
-  for (const auto& pair : pairs)
-    pairs_val.PushBack(json::Value().SetString(json::StringRef(pair.c_str())), allocator);
-  out_json.AddMember("pair", pairs_val, allocator);
-
-  // struct { name: "ticker" }
-  auto subscription_val = json::Value();
-  subscription_val.SetObject();
-  subscription_val.AddMember("name", json::Value().SetString("ticker"), allocator);
-  out_json.AddMember("subscription", subscription_val, allocator);
-
-  // serialize
-  auto buffer = json::StringBuffer();
-  auto writer = json::Writer<json::StringBuffer>(buffer);
-  out_json.Accept(writer);
-
-  return string(buffer.GetString());
+  auto json_doc = R"EOF(
+    {{
+      "event": "subscribe",
+      "pair": ["{}"],
+      "subscription": {{
+        "name": "ticker"
+      }}
+    }}
+  )EOF";
+  return fmt::format(json_doc, fmt::join(pairs, "\",\""));
 }
 
 auto parse_json(const str& response_text) -> vec<str> {
@@ -46,7 +42,7 @@ auto parse_json(const str& response_text) -> vec<str> {
 
   // validate it parsed correctly and has the field "result"
   if (json_doc.HasParseError() or not json_doc.HasMember("result"))
-    throw error(fmt::format("Failed to parse returned document: {}", response_text.c_str()));
+    throw error("failed to parse returned document: " + response_text);
   const auto obj = json_doc["result"].GetObject();
 
   // aggregate the wsnames of each pair to a vector of strings
@@ -59,7 +55,7 @@ auto parse_json(const str& response_text) -> vec<str> {
 }
 
 auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
-  logger::info("Getting kraken pairs list");
+  logger::info("getting kraken pairs list");
   // disable ssl configs for now
   auto config = rest::config();
   config.set_validate_certificates(false);
@@ -70,7 +66,7 @@ auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
 
   // if not OK then return an error
   if (response.status_code() != rest::status_codes::OK) {
-    throw error("Returned " + to_string(response.status_code()));
+    throw error("returned " + to_string(response.status_code()));
   }
 
   // extract and parse
@@ -93,7 +89,7 @@ auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
-  if (msg.HasParseError()) throw error("Failed to parse: " + msg_data);
+  if (msg.HasParseError()) throw error("failed to parse: " + msg_data);
 
   // if message is {} object and is an error object then throw
   if (msg.IsObject() and msg.HasMember("errorMessage")) {

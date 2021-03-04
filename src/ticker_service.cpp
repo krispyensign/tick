@@ -108,15 +108,13 @@ auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_reque
 auto ws_handler(const atomic_bool& is_running, zmq::socket_t& publisher,
                 const function<var<pair_price_update, str>(const str&)>& parse_event_callback)
   -> function<void(const ws::in_message data)> {
-  auto tick_count = 0;
-  return [&](const ws::in_message data) {
+  return [&, is_healthy = false](const ws::in_message data) mutable {
     if (is_running)
       data.extract_string()
         .then([&](const str& msg) {
-          if (process_tick(parse_event_callback, publisher, msg) and tick_count < 4) ++tick_count;
-          if (tick_count == 4) {
-            logger::info("Ticker healthy.");
-            tick_count++;
+          if (process_tick(parse_event_callback, publisher, msg) == true and is_healthy == false) {
+            is_healthy = true;
+            logger::info("**ticker healthy**");
           }
         })
         .get();
@@ -149,7 +147,7 @@ auto tick_service(const exchange_name& ex_name, const service_config& conf,
   while (is_running) this_thread::sleep_for(100ms);
 
   // stop the work vent first
-  logger::info("Got shutdown signal");
+  logger::info("got shutdown signal");
   ws_send(wsock, create_tick_unsub_request());
   this_thread::sleep_for(100ms);
   wsock.close();
@@ -157,7 +155,7 @@ auto tick_service(const exchange_name& ex_name, const service_config& conf,
   // then stop the sink
   publisher.close();
   ctx.shutdown();
-  logger::info("Shutdown complete");
+  logger::info("shutdown complete");
 }
 
 }  // namespace ticker_service
