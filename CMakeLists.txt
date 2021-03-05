@@ -31,6 +31,8 @@ set(CMAKE_CXX_CPPCHECK "cppcheck"
   "--report-progress"
 )
 
+set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,readability-*)
+
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")

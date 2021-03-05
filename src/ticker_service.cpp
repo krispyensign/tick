@@ -49,11 +49,13 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
 }
 
 auto validate(const service_config& conf) -> bool {
-  if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty())
+  if (not web::uri::validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
     throw error("Invalid websocket uri for config");
+  }
 
-  if (not web::uri().validate(conf.zbind) or web::uri(conf.zbind).is_empty())
+  if (not web::uri::validate(conf.zbind) or web::uri(conf.zbind).is_empty()) {
     throw error("Invalid binding uri for config");
+  }
 
   return true;
 }
@@ -110,7 +112,7 @@ auto ws_handler(
            const ws::in_message data) mutable {
     if (is_running) {
       auto msg = data.extract_string().get();
-      if (auto update = parse_event(msg); update != nullopt and is_healthy == false) {
+      if (auto update = parse_event(msg); update != nullopt and is_healthy) {
         is_healthy = true;
         logger::info("**ticker healthy**");
         send_tick(publisher, update.value());
@@ -144,7 +146,9 @@ auto tick_service(
 
   // periodically check if service is still alive
   logger::info("sleeping, waiting for shutdown");
-  while (is_running) this_thread::sleep_for(100ms);
+  while (is_running) {
+    this_thread::sleep_for(100ms);
+  }
 
   // stop the work vent first
   logger::info("got shutdown signal");
