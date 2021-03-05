@@ -37,7 +37,7 @@ auto main(i16 argc, c_str argv[]) -> i16 {
     async(
       launch::async,
       ticker_service::tick_service,
-      exchange_name::KRAKEN,
+      exchange_name::kraken,
       conf,
       ref(cancellation_token))
       .get();

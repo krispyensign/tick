@@ -8,7 +8,7 @@
 #include "ns_helper.hpp"
 #include "spdlog/fmt/bundled/format.h"
 
-namespace kraken {
+namespace kraken_exchange {
 
 auto create_tick_unsub_request() -> str {
   return R"EOF(
@@ -83,7 +83,7 @@ auto is_ticker(const json::Value& json) -> bool {
   return true;
 }
 
-auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
+auto parse_event(const str& msg_data) -> optional<pair_price_update> {
   auto msg = json::Document();
   msg.Parse(msg_data.c_str());
 
@@ -95,7 +95,7 @@ auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
     throw error(msg["errorMessage"].GetString());
 
   // validate it is a kraken publication type.  all kraken publications are arrays of size 4
-  if (not msg.IsArray() or msg.Size() != 4) return msg_data;
+  if (not msg.IsArray() or msg.Size() != 4) return nullopt;
 
   // cast the message to a publication array
   const auto publication = msg.GetArray();
@@ -104,7 +104,7 @@ auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
   const auto payload = publication[1].GetObject();
 
   // validate the payload is a tick object
-  if (not is_ticker(payload)) return msg_data;
+  if (not is_ticker(payload)) return nullopt;
 
   // construct a neutral format for the price update event
   return pair_price_update{

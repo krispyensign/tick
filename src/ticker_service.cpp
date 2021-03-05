@@ -1,32 +1,40 @@
+#include <algorithm>
+#include <optional>
 #include <thread>
+#include <variant>
 #include <zmq.hpp>
 
 #include "kraken.hpp"
 #include "ns_helper.hpp"
-#include "templates.hpp"
+#include "types.hpp"
 
 namespace ticker_service {
+
+#define make_exchange(exname)                                                        \
+  case exname:                                                                       \
+    return {                                                                         \
+      exname##_exchange::create_tick_sub_request, exname##_exchange::get_pairs_list, \
+        exname##_exchange::create_tick_unsub_request,                                \
+    }
+
+#define make_exchange_parser(exname) \
+  case exname:                       \
+    return exname##_exchange::parse_event
 
 auto select_exchange(exchange_name ex) -> tuple<
   function<str(const vec<str>&)>,
   function<vec<str>(const str&, const str&)>,
   function<str(void)>> {
   switch (ex) {
-    case KRAKEN:
-      return {
-        kraken::create_tick_sub_request,
-        kraken::get_pairs_list,
-        kraken::create_tick_unsub_request,
-      };
+    make_exchange(kraken);
     default:
       throw error("unrecognized exchange");
   }
 }
 
-auto select_exchange_parser(exchange_name ex) -> function<var<pair_price_update, str>(const str&)> {
+auto select_exchange_parser(exchange_name ex) -> function<optional<pair_price_update>(const str&)> {
   switch (ex) {
-    case KRAKEN:
-      return kraken::parse_event;
+    make_exchange_parser(kraken);
     default:
       throw error("unrecognized exchange");
   }
@@ -38,23 +46,6 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   msgpack::pack(buf, event);
   ticker_publisher.send(zmq::message_t(buf.str()), zmq::send_flags::none);
   return true;
-}
-
-auto process_tick(
-  const function<var<pair_price_update, str>(const str&)>& parse_event_callback,
-  zmq::socket_t& ticker_publisher,
-  const str& incoming_msg) -> bool {
-  // parse and dispatch result
-  return type_match(
-    parse_event_callback(incoming_msg),
-    // if it's a valid event then queue
-    [&ticker_publisher](const pair_price_update& p) { return send_tick(ticker_publisher, p); },
-
-    // else log then eat the exception
-    [](const str& e) {
-      logger::info(e);
-      return false;
-    });
 }
 
 auto validate(const service_config& conf) -> bool {
@@ -119,9 +110,12 @@ auto ws_handler(
            const ws::in_message data) mutable {
     if (is_running) {
       auto msg = data.extract_string().get();
-      if (process_tick(parse_event, publisher, msg) == true and is_healthy == false) {
+      if (auto update = parse_event(msg); update != nullopt and is_healthy == false) {
         is_healthy = true;
         logger::info("**ticker healthy**");
+        send_tick(publisher, update.value());
+      } else {
+        logger::info(msg);
       }
     }
   };
