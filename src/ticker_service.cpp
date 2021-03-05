@@ -1,7 +1,3 @@
-#include <algorithm>
-#include <optional>
-#include <thread>
-#include <variant>
 #include <zmq.hpp>
 
 #include "kraken.hpp"

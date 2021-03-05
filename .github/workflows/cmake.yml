@@ -25,7 +25,8 @@ jobs:
             subversion\
             gcc-10\
             g++-10\
-            clang-tools\
+            clang-tools-11\
+            clang-tidy-11\
             git\
             cmake\
             ninja-build\
@@ -40,6 +41,8 @@ jobs:
         sudo apt autoremove -y &&\
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20 &&\
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20 &&\
+        sudo update-alternatives --install /usr/bin/scan-build scan-build /usr/bin/scan-build-11 20 &&\
+        sudo update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/bin/clang-tidy-11 20 &&\
         ./getstuff.sh
 
     - name: Create Build Environment
