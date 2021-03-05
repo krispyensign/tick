@@ -65,9 +65,8 @@ auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
     rest::client(api_url, config).request(rest::methods::GET, assets_path).get();
 
   // if not OK then return an error
-  if (response.status_code() != rest::status_codes::OK) {
+  if (response.status_code() != rest::status_codes::OK)
     throw error("returned " + to_string(response.status_code()));
-  }
 
   // extract and parse
   return parse_json(response.extract_string().get());
@@ -92,9 +91,8 @@ auto parse_event(const str& msg_data) -> var<pair_price_update, str> {
   if (msg.HasParseError()) throw error("failed to parse: " + msg_data);
 
   // if message is {} object and is an error object then throw
-  if (msg.IsObject() and msg.HasMember("errorMessage")) {
+  if (msg.IsObject() and msg.HasMember("errorMessage"))
     throw error(msg["errorMessage"].GetString());
-  }
 
   // validate it is a kraken publication type.  all kraken publications are arrays of size 4
   if (not msg.IsArray() or msg.Size() != 4) return msg_data;
