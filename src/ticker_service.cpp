@@ -19,11 +19,7 @@ auto select_exchange(exchange_name ex) -> tuple<
         kraken::create_tick_unsub_request,
       };
     default:
-      return {
-        kraken::create_tick_sub_request,
-        kraken::get_pairs_list,
-        kraken::create_tick_unsub_request,
-      };
+      throw error("unrecognized exchange");
   }
 }
 
@@ -32,7 +28,7 @@ auto select_exchange_parser(exchange_name ex) -> function<var<pair_price_update,
     case KRAKEN:
       return kraken::parse_event;
     default:
-      return kraken::parse_event;
+      throw error("unrecognized exchange");
   }
 }
 
@@ -62,21 +58,20 @@ auto process_tick(
 }
 
 auto validate(const service_config& conf) -> bool {
-  if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
+  if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty())
     throw error("Invalid websocket uri for config");
-  }
 
-  if (not web::uri().validate(conf.zbind) or web::uri(conf.zbind).is_empty()) {
+  if (not web::uri().validate(conf.zbind) or web::uri(conf.zbind).is_empty())
     throw error("Invalid binding uri for config");
-  }
+
   return true;
 }
 
 auto ws_send(ws::client& ticker_ws, const str& in_msg) -> void {
-  // create a websocket envolope
+  // create a utf-8 websocket envolope
   auto out_msg = ws::out_message();
-  // add the message in
   out_msg.set_utf8_message(in_msg);
+
   // send it
   ticker_ws.send(out_msg).get();
 }
@@ -122,15 +117,13 @@ auto ws_handler(
   -> function<void(const ws::in_message data)> {
   return [&, is_healthy = false, parse_event = select_exchange_parser(ex_name)](
            const ws::in_message data) mutable {
-    if (is_running)
-      data.extract_string()
-        .then([&](const str& msg) {
-          if (process_tick(parse_event, publisher, msg) == true and is_healthy == false) {
-            is_healthy = true;
-            logger::info("**ticker healthy**");
-          }
-        })
-        .get();
+    if (is_running) {
+      auto msg = data.extract_string().get();
+      if (process_tick(parse_event, publisher, msg) == true and is_healthy == false) {
+        is_healthy = true;
+        logger::info("**ticker healthy**");
+      }
+    }
   };
 }
 
@@ -139,7 +132,6 @@ auto tick_service(
   // configure exchange and perform basic validation on the config
   const auto [create_tick_sub_request, get_pairs_list, create_tick_unsub_request] =
     select_exchange(ex_name);
-
   validate(conf);
   logger::info("conf validated");
 
@@ -152,10 +144,11 @@ auto tick_service(
   auto publisher = start_publisher(conf, ctx);
   auto wsock = start_websocket(create_tick_sub_request, conf, pair_result);
 
+  // setup callback for incoming messages
   wsock.set_message_handler(ws_handler(ex_name, is_running, publisher));
   logger::info("callback setup");
 
-  // periodically check if service is still alive then try to shutdown cleanly
+  // periodically check if service is still alive
   logger::info("sleeping, waiting for shutdown");
   while (is_running) this_thread::sleep_for(100ms);
 
