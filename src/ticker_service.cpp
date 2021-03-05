@@ -7,9 +7,10 @@
 
 namespace ticker_service {
 
-auto select_exchange(exchange_name ex)
-  -> tuple<function<str(const vec<str>&)>, function<vec<str>(const str&, const str&)>,
-           function<str(void)>> {
+auto select_exchange(exchange_name ex) -> tuple<
+  function<str(const vec<str>&)>,
+  function<vec<str>(const str&, const str&)>,
+  function<str(void)>> {
   switch (ex) {
     case KRAKEN:
       return {
@@ -26,8 +27,7 @@ auto select_exchange(exchange_name ex)
   }
 }
 
-auto select_exchange_parser(exchange_name ex)
-  -> function<var<pair_price_update, str>(const str&)> {
+auto select_exchange_parser(exchange_name ex) -> function<var<pair_price_update, str>(const str&)> {
   switch (ex) {
     case KRAKEN:
       return kraken::parse_event;
@@ -44,8 +44,10 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   return true;
 }
 
-auto process_tick(const function<var<pair_price_update, str>(const str&)>& parse_event_callback,
-                  zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
+auto process_tick(
+  const function<var<pair_price_update, str>(const str&)>& parse_event_callback,
+  zmq::socket_t& ticker_publisher,
+  const str& incoming_msg) -> bool {
   // parse and dispatch result
   return type_match(
     parse_event_callback(incoming_msg),
@@ -91,8 +93,10 @@ auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::so
   return publisher;
 }
 
-auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_request_callback,
-                     const service_config& conf, const vec<str>& pair_result) -> ws::client {
+auto start_websocket(
+  const function<str(const vec<str>&)>& create_tick_sub_request_callback,
+  const service_config& conf,
+  const vec<str>& pair_result) -> ws::client {
   // configure websocket client
   auto ws_conf = ws::config();
   ws_conf.set_validate_certificates(false);
@@ -113,10 +117,11 @@ auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_reque
   return wsock;
 }
 
-auto ws_handler(const exchange_name& ex_name, const atomic_bool& is_running,
-                zmq::socket_t& publisher) -> function<void(const ws::in_message data)> {
-  return [&, is_healthy = false,
-          parse_event = select_exchange_parser(ex_name)](const ws::in_message data) mutable {
+auto ws_handler(
+  const exchange_name& ex_name, const atomic_bool& is_running, zmq::socket_t& publisher)
+  -> function<void(const ws::in_message data)> {
+  return [&, is_healthy = false, parse_event = select_exchange_parser(ex_name)](
+           const ws::in_message data) mutable {
     if (is_running)
       data.extract_string()
         .then([&](const str& msg) {
@@ -129,8 +134,8 @@ auto ws_handler(const exchange_name& ex_name, const atomic_bool& is_running,
   };
 }
 
-auto tick_service(const exchange_name& ex_name, const service_config& conf,
-                  const atomic_bool& is_running) -> void {
+auto tick_service(
+  const exchange_name& ex_name, const service_config& conf, const atomic_bool& is_running) -> void {
   // configure exchange and perform basic validation on the config
   const auto [create_tick_sub_request, get_pairs_list, create_tick_unsub_request] =
     select_exchange(ex_name);

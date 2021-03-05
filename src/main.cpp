@@ -34,8 +34,12 @@ auto main(i16 argc, c_str argv[]) -> i16 {
     };
 
     // launch the service
-    async(launch::async, ticker_service::tick_service, exchange_name::KRAKEN, conf,
-          ref(cancellation_token))
+    async(
+      launch::async,
+      ticker_service::tick_service,
+      exchange_name::KRAKEN,
+      conf,
+      ref(cancellation_token))
       .get();
 
   } catch (const exception& e) {
