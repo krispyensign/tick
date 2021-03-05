@@ -6,6 +6,8 @@
 
 namespace ticker_service {
 
+#define DEFAULT_SLEEP 100ms
+
 #define make_exchange(exname)                                                        \
   case exname:                                                                       \
     return {                                                                         \
@@ -105,7 +107,7 @@ auto ws_handler(
   const exchange_name& ex_name, const atomic_bool& is_running, zmq::socket_t& publisher)
   -> function<void(const ws::in_message data)> {
   return [&, is_healthy = false, parse_event = select_exchange_parser(ex_name)](
-           const ws::in_message data) mutable {
+           const ws::in_message& data) mutable {
     if (is_running) {
       auto msg = data.extract_string().get();
       if (auto update = parse_event(msg); update != nullopt and is_healthy) {
@@ -143,13 +145,13 @@ auto tick_service(
   // periodically check if service is still alive
   logger::info("sleeping, waiting for shutdown");
   while (is_running) {
-    this_thread::sleep_for(100ms);
+    this_thread::sleep_for(DEFAULT_SLEEP);
   }
 
   // stop the work vent first
   logger::info("got shutdown signal");
   ws_send(wsock, create_tick_unsub_request());
-  this_thread::sleep_for(100ms);
+  this_thread::sleep_for(DEFAULT_SLEEP);
   wsock.close();
 
   // then stop the sink

@@ -21,7 +21,7 @@ auto signal_handler(int signal) -> void { shutdown_handler(signal); }
 auto main(i16 argc, c_str argv[]) -> i16 {
   // setup the cancellation token for the service to catch console ctrl-c
   auto cancellation_token = atomic_bool(true);
-  shutdown_handler = [&cancellation_token](int) -> void { cancellation_token = false; };
+  shutdown_handler = [&cancellation_token](int a) -> void {cancellation_token = false; };
   signal(SIGINT, signal_handler);
 
   try {

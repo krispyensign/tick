@@ -50,7 +50,7 @@ auto parse_json(const str& response_text) -> vec<str> {
   auto pair_list = vec<str>();
   for (const auto& pair : obj) {
     if (pair.value.HasMember("wsname")) {
-      pair_list.push_back(pair.value["wsname"].GetString());
+      pair_list.emplace_back(string(pair.value["wsname"].GetString()));
     }
   }
 
