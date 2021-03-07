@@ -5,7 +5,7 @@
 #include "base_types.hpp"
 
 enum exchange_name {
-  KRAKEN,
+  kraken,
 };
 
 struct service_config {

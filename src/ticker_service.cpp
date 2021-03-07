@@ -1,38 +1,40 @@
-#include <thread>
 #include <zmq.hpp>
 
 #include "kraken.hpp"
 #include "ns_helper.hpp"
-#include "templates.hpp"
+#include "types.hpp"
 
 namespace ticker_service {
 
-auto select_exchange(exchange_name ex)
-  -> tuple<function<str(const vec<str>&)>, function<vec<str>(const str&, const str&)>,
-           function<str(void)>> {
+#define DEFAULT_SLEEP 100ms
+
+#define make_exchange(exname)                                                        \
+  case exname:                                                                       \
+    return {                                                                         \
+      exname##_exchange::create_tick_sub_request, exname##_exchange::get_pairs_list, \
+        exname##_exchange::create_tick_unsub_request,                                \
+    }
+
+#define make_exchange_parser(exname) \
+  case exname:                       \
+    return exname##_exchange::parse_event
+
+auto select_exchange(exchange_name ex) -> tuple<
+  function<str(const vec<str>&)>,
+  function<vec<str>(const str&, const str&)>,
+  function<str(void)>> {
   switch (ex) {
-    case KRAKEN:
-      return {
-        kraken::create_tick_sub_request,
-        kraken::get_pairs_list,
-        kraken::create_tick_unsub_request,
-      };
+    make_exchange(kraken);
     default:
-      return {
-        kraken::create_tick_sub_request,
-        kraken::get_pairs_list,
-        kraken::create_tick_unsub_request,
-      };
+      throw error("unrecognized exchange");
   }
 }
 
-auto select_exchange_parser(exchange_name ex)
-  -> function<var<pair_price_update, str>(const str&)> {
+auto select_exchange_parser(exchange_name ex) -> function<optional<pair_price_update>(const str&)> {
   switch (ex) {
-    case KRAKEN:
-      return kraken::parse_event;
+    make_exchange_parser(kraken);
     default:
-      return kraken::parse_event;
+      throw error("unrecognized exchange");
   }
 }
 
@@ -44,37 +46,23 @@ auto send_tick(zmq::socket_t& ticker_publisher, const pair_price_update& event) 
   return true;
 }
 
-auto process_tick(const function<var<pair_price_update, str>(const str&)>& parse_event_callback,
-                  zmq::socket_t& ticker_publisher, const str& incoming_msg) -> bool {
-  // parse and dispatch result
-  return type_match(
-    parse_event_callback(incoming_msg),
-    // if it's a valid event then queue
-    [&ticker_publisher](const pair_price_update& p) { return send_tick(ticker_publisher, p); },
-
-    // else log then eat the exception
-    [](const str& e) {
-      logger::info(e);
-      return false;
-    });
-}
-
 auto validate(const service_config& conf) -> bool {
-  if (not web::uri().validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
+  if (not web::uri::validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
     throw error("Invalid websocket uri for config");
   }
 
-  if (not web::uri().validate(conf.zbind) or web::uri(conf.zbind).is_empty()) {
+  if (not web::uri::validate(conf.zbind) or web::uri(conf.zbind).is_empty()) {
     throw error("Invalid binding uri for config");
   }
+
   return true;
 }
 
 auto ws_send(ws::client& ticker_ws, const str& in_msg) -> void {
-  // create a websocket envolope
+  // create a utf-8 websocket envolope
   auto out_msg = ws::out_message();
-  // add the message in
   out_msg.set_utf8_message(in_msg);
+
   // send it
   ticker_ws.send(out_msg).get();
 }
@@ -91,8 +79,10 @@ auto start_publisher(const service_config& conf, zmq::context_t& ctx) -> zmq::so
   return publisher;
 }
 
-auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_request_callback,
-                     const service_config& conf, const vec<str>& pair_result) -> ws::client {
+auto start_websocket(
+  const function<str(const vec<str>&)>& create_tick_sub_request_callback,
+  const service_config& conf,
+  const vec<str>& pair_result) -> ws::client {
   // configure websocket client
   auto ws_conf = ws::config();
   ws_conf.set_validate_certificates(false);
@@ -113,28 +103,29 @@ auto start_websocket(const function<str(const vec<str>&)>& create_tick_sub_reque
   return wsock;
 }
 
-auto ws_handler(const exchange_name& ex_name, const atomic_bool& is_running,
-                zmq::socket_t& publisher) -> function<void(const ws::in_message data)> {
-  return [&, is_healthy = false,
-          parse_event = select_exchange_parser(ex_name)](const ws::in_message data) mutable {
-    if (is_running)
-      data.extract_string()
-        .then([&](const str& msg) {
-          if (process_tick(parse_event, publisher, msg) == true and is_healthy == false) {
-            is_healthy = true;
-            logger::info("**ticker healthy**");
-          }
-        })
-        .get();
+auto ws_handler(
+  const exchange_name& ex_name, const atomic_bool& is_running, zmq::socket_t& publisher)
+  -> function<void(const ws::in_message data)> {
+  return [&, is_healthy = false, parse_event = select_exchange_parser(ex_name)](
+           const ws::in_message& data) mutable {
+    if (is_running) {
+      auto msg = data.extract_string().get();
+      if (auto update = parse_event(msg); update != nullopt and is_healthy) {
+        is_healthy = true;
+        logger::info("**ticker healthy**");
+        send_tick(publisher, update.value());
+      } else {
+        logger::info(msg);
+      }
+    }
   };
 }
 
-auto tick_service(const exchange_name& ex_name, const service_config& conf,
-                  const atomic_bool& is_running) -> void {
+auto tick_service(
+  const exchange_name& ex_name, const service_config& conf, const atomic_bool& is_running) -> void {
   // configure exchange and perform basic validation on the config
   const auto [create_tick_sub_request, get_pairs_list, create_tick_unsub_request] =
     select_exchange(ex_name);
-
   validate(conf);
   logger::info("conf validated");
 
@@ -147,17 +138,20 @@ auto tick_service(const exchange_name& ex_name, const service_config& conf,
   auto publisher = start_publisher(conf, ctx);
   auto wsock = start_websocket(create_tick_sub_request, conf, pair_result);
 
+  // setup callback for incoming messages
   wsock.set_message_handler(ws_handler(ex_name, is_running, publisher));
   logger::info("callback setup");
 
-  // periodically check if service is still alive then try to shutdown cleanly
+  // periodically check if service is still alive
   logger::info("sleeping, waiting for shutdown");
-  while (is_running) this_thread::sleep_for(100ms);
+  while (is_running) {
+    this_thread::sleep_for(DEFAULT_SLEEP);
+  }
 
   // stop the work vent first
   logger::info("got shutdown signal");
   ws_send(wsock, create_tick_unsub_request());
-  this_thread::sleep_for(100ms);
+  this_thread::sleep_for(DEFAULT_SLEEP);
   wsock.close();
 
   // then stop the sink
