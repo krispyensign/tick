@@ -6,7 +6,6 @@
 #include <rapidjson/writer.h>
 
 #include "ns_helper.hpp"
-#include "spdlog/fmt/bundled/format.h"
 
 namespace kraken {
 
