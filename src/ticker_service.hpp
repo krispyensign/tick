@@ -1,23 +1,189 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
 #include <atomic>
+#include <memory>
 #include <thread>
 #include <zmq.hpp>
 
 #include "kraken.hpp"
-#include "ns_helper.hpp"
 #include "types.hpp"
 
 using std::atomic_bool;
 using std::function;
-using std::nullopt;
 using std::stringstream;
 using std::tuple;
 using namespace std::chrono_literals;
 
+using std::make_shared;
+using std::shared_ptr;
+
+#define let const auto
+
+#define make_exchange(exname)                         \
+  case exname:                                        \
+    return {                                          \
+      exname##_exchange::create_tick_sub_request,     \
+        exname##_exchange::get_pairs_list,            \
+        exname##_exchange::create_tick_unsub_request, \
+    }
+
+#define make_exchange_parser(exname) \
+  case exname:                       \
+    return exname##_exchange::parse_event
+
 namespace ticker_service {
-auto tick_service(
-  const exchange_name& ex, const service_config& conf, const atomic_bool& is_running) -> void;
-}
+
+using ZeroSocket = shared_ptr<zmq::socket_t>;
+using Context = shared_ptr<zmq::context_t>;
+using WebSocket = shared_ptr<ws::client>;
+using PairPriceUpdate = const pair_price_update&;
+using ServiceConfig = const service_config&;
+using String = const str&;
+using AtomicBool = const atomic_bool&;
+
+let select_exchange =
+  [](exchange_name ex) -> tuple<function<str(const vec<str>&)>,
+                                function<vec<str>(String, String)>,
+                                function<str(void)>> {
+  switch (ex) {
+    make_exchange(kraken);
+    default:
+      throw error("unrecognized exchange");
+  }
+};
+
+let select_exchange_parser =
+  [](exchange_name ex) -> function<optional<pair_price_update>(String)> {
+  switch (ex) {
+    make_exchange_parser(kraken);
+    default:
+      throw error("unrecognized exchange");
+  }
+};
+
+let send_tick = [](ZeroSocket ticker_publisher, PairPriceUpdate event) -> bool {
+  // pack it up and send it
+  auto buf = stringstream();
+  msgpack::pack(buf, event);
+  ticker_publisher->send(zmq::message_t(buf.str()), zmq::send_flags::none);
+  return true;
+};
+
+let validate = [](ServiceConfig conf) -> bool {
+  if (not web::uri::validate(conf.ws_uri) or web::uri(conf.ws_uri).is_empty()) {
+    throw error("Invalid websocket uri for config");
+  }
+
+  if (not web::uri::validate(conf.zbind) or web::uri(conf.zbind).is_empty()) {
+    throw error("Invalid binding uri for config");
+  }
+
+  return true;
+};
+
+let ws_send = [](WebSocket ticker_ws, String in_msg) -> void {
+  // create a utf-8 websocket envolope
+  auto out_msg = ws::out_message();
+  out_msg.set_utf8_message(in_msg);
+
+  // send it
+  ticker_ws->send(out_msg).get();
+};
+
+let start_publisher = [](ServiceConfig conf, Context ctx) -> ZeroSocket {
+  // get a publisher socket
+  auto publisher = make_shared<zmq::socket_t>(*ctx, zmq::socket_type::pub);
+  logger::info("socket provisioned");
+
+  // attempt to bind
+  publisher->bind(conf.zbind);
+  logger::info("socket bound");
+
+  return publisher;
+};
+
+let start_websocket =
+  [](const function<str(const vec<str>&)>& create_tick_sub_request_callback,
+     ServiceConfig conf,
+     const vec<str>& pair_result) -> WebSocket {
+  // configure websocket client
+  auto ws_conf = ws::config();
+  ws_conf.set_validate_certificates(false);
+  auto wsock = make_shared<ws::client>(ws_conf);
+  logger::info("websocket provisioned");
+
+  // connect sockets
+  wsock->connect(conf.ws_uri).get();
+  logger::info("websocket connected");
+
+  // serialize the subscription request and send it off
+  auto subscription = create_tick_sub_request_callback(pair_result);
+  logger::info("sending subscription:");
+  logger::info(subscription);
+  ws_send(wsock, subscription);
+
+  return wsock;
+};
+
+let ws_handler =
+  [](AtomicBool is_running,
+     ZeroSocket publisher,
+     const function<optional<pair_price_update>(String)>& parse_event,
+     bool is_healthy = false) -> function<void(const ws::in_message& data)> {
+  return [&](const ws::in_message& data) {
+    if (is_running) {
+      auto msg = data.extract_string().get();
+      if (auto update = parse_event(msg); update != null and is_healthy) {
+        is_healthy = true;
+        logger::info("**ticker healthy**");
+        send_tick(publisher, update.value());
+      } else {
+        logger::info(msg);
+      }
+    }
+  };
+};
+
+let tick_service =
+  [](exchange_name ex_name, ServiceConfig conf, AtomicBool is_running) -> void {
+  // configure exchange and perform basic validation on the config
+  let[create_tick_sub_request, get_pairs_list, create_tick_unsub_request] =
+    select_exchange(ex_name);
+  validate(conf);
+  logger::info("conf validated");
+
+  // attempt to get the available pairs for websocket subscription
+  let pair_result = get_pairs_list(conf.api_url, conf.assets_path);
+  logger::info("got pairs");
+
+  // provision all the endpoints and connections
+  auto ctx = make_shared<zmq::context_t>(1);
+  auto publisher = start_publisher(conf, ctx);
+  auto wsock = start_websocket(create_tick_sub_request, conf, pair_result);
+
+  // setup callback for incoming messages
+  wsock->set_message_handler(
+    ws_handler(is_running, publisher, select_exchange_parser(ex_name)));
+  logger::info("callback setup");
+
+  // periodically check if service is still alive
+  logger::info("sleeping, waiting for shutdown");
+  while (is_running) {
+    std::this_thread::sleep_for(100ms);
+  }
+
+  // stop the work vent first
+  logger::info("got shutdown signal");
+  ws_send(wsock, create_tick_unsub_request());
+  std::this_thread::sleep_for(100ms);
+  wsock->close();
+
+  // then stop the sink
+  publisher->close();
+  ctx->shutdown();
+  logger::info("shutdown complete");
+};
+
+}  // namespace ticker_service
 
 #endif

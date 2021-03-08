@@ -2,7 +2,7 @@
 Language:        Cpp
 # BasedOnStyle:  Google
 AccessModifierOffset: -1
-AlignAfterOpenBracket: AlwaysBreak
+AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: false
 AlignConsecutiveAssignments: false
 AlignConsecutiveBitFields: false
@@ -54,7 +54,7 @@ BreakConstructorInitializersBeforeComma: false
 BreakConstructorInitializers: BeforeColon
 BreakAfterJavaFieldAnnotations: false
 BreakStringLiterals: true
-ColumnLimit:     100
+ColumnLimit:     80
 CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces: false
 ConstructorInitializerAllOnOneLineOrOnePerLine: true

@@ -1,11 +1,10 @@
 #define BACKWARD_HAS_LIBUNWIND 1
+#include "ticker_service.hpp"
+
 #include <spdlog/spdlog.h>
 
 #include <backward.hpp>
 #include <future>
-
-#include "ns_helper.hpp"
-#include "ticker_service.hpp"
 
 using namespace std;
 // TODO: add main argument parser and options file
