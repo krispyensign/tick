@@ -1,11 +1,6 @@
+#include <range/v3/algorithm/all_of.hpp>
+
 #include "kraken.hpp"
-
-#include <rapidjson/document.h>
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-
-#include "ns_helper.hpp"
 
 namespace kraken_exchange {
 
@@ -49,7 +44,7 @@ auto parse_json(const str& response_text) -> vec<str> {
   auto pair_list = vec<str>();
   for (const auto& pair : obj) {
     if (pair.value.HasMember("wsname")) {
-      pair_list.emplace_back(string(pair.value["wsname"].GetString()));
+      pair_list.emplace_back(str(pair.value["wsname"].GetString()));
     }
   }
 
@@ -69,7 +64,7 @@ auto get_pairs_list(const str& api_url, const str& assets_path) -> vec<str> {
 
   // if not OK then return an error
   if (response.status_code() != rest::status_codes::OK) {
-    throw error("returned " + to_string(response.status_code()));
+    throw error("returned " + std::to_string(response.status_code()));
   }
 
   // extract and parse
@@ -81,13 +76,7 @@ auto is_ticker(const json::Value& json) -> bool {
   const auto required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
   // check each member in the requried members list
-  for (const auto& memb : required_members) {
-    if (not json.HasMember(memb)) {
-      return false;
-    }
-  }
-
-  return true;
+  return ranges::all_of(required_members, [&json](auto mem) { return json.HasMember(mem); });
 }
 
 auto parse_event(const str& msg_data) -> optional<pair_price_update> {
@@ -106,7 +95,7 @@ auto parse_event(const str& msg_data) -> optional<pair_price_update> {
 
   // validate it is a kraken publication type.  all kraken publications are arrays of size 4
   if (not msg.IsArray() or msg.Size() != 4) {
-    return nullopt;
+    return std::nullopt;
   }
 
   // cast the message to a publication array
@@ -117,7 +106,7 @@ auto parse_event(const str& msg_data) -> optional<pair_price_update> {
 
   // validate the payload is a tick object
   if (not is_ticker(payload)) {
-    return nullopt;
+    return std::nullopt;
   }
 
   // construct a neutral format for the price update event
@@ -127,4 +116,4 @@ auto parse_event(const str& msg_data) -> optional<pair_price_update> {
     .bid = atof(payload["b"][0].GetString()),
   };
 }
-}  // namespace kraken
+}  // namespace kraken_exchange

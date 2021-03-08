@@ -7,6 +7,7 @@
 #include "ns_helper.hpp"
 #include "ticker_service.hpp"
 
+using namespace std;
 // TODO: add main argument parser and options file
 
 // setup stacktracing

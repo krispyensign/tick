@@ -1,12 +1,6 @@
-#include <zmq.hpp>
-
-#include "kraken.hpp"
-#include "ns_helper.hpp"
-#include "types.hpp"
+#include "ticker_service.hpp"
 
 namespace ticker_service {
-
-#define DEFAULT_SLEEP 100ms
 
 #define make_exchange(exname)                                                        \
   case exname:                                                                       \
@@ -145,13 +139,13 @@ auto tick_service(
   // periodically check if service is still alive
   logger::info("sleeping, waiting for shutdown");
   while (is_running) {
-    this_thread::sleep_for(DEFAULT_SLEEP);
+    std::this_thread::sleep_for(100ms);
   }
 
   // stop the work vent first
   logger::info("got shutdown signal");
   ws_send(wsock, create_tick_unsub_request());
-  this_thread::sleep_for(DEFAULT_SLEEP);
+  std::this_thread::sleep_for(100ms);
   wsock.close();
 
   // then stop the sink

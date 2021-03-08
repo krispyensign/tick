@@ -31,9 +31,9 @@ set(CMAKE_CXX_CPPCHECK "cppcheck"
   "--report-progress"
 )
 
-add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic -fanalyzer)
-add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic -fanalyzer)
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,,clang-analyzer-*,-clang-analyzer-cplusplus*,bugprone-*,readability-*,concurrency-*,modernize-*,performance-*,portability-*)
+add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
+add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
+# set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,,clang-analyzer-*,-clang-analyzer-cplusplus*,bugprone-*,readability-*,concurrency-*,modernize-*,performance-*,portability-*)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
 
