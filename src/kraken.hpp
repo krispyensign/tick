@@ -31,7 +31,7 @@ let create_tick_unsub_request = []() -> str {
 
 let create_tick_sub_request = [](const vec<str>& pairs) -> str {
   // allocate root dom
-  let& json_doc = R"EOF(
+  let json_doc = R"EOF(
     {{
       "event": "subscribe",
       "pair": ["{}"],
