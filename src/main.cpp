@@ -40,7 +40,7 @@ auto main(i16 argc, c_str argv[]) -> i16 {
   // parse the cli args
   try {
     parser.ParseCLI(argc, argv);
-  } catch (args::Help) {
+  } catch (args::Help&) {
     std::cout << parser;
     return 0;
   }
