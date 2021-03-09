@@ -78,7 +78,7 @@ let is_ticker = [](const json::Value& json_val) -> bool {
 };
 
 let parse_event = [](const str& msg_data) -> optional<pair_price_update> {
-  auto msg = json::Document();
+  mutant msg = json::Document();
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
