@@ -23,21 +23,21 @@ def main(i16 argc, c_str argv[]) -> i16 {
   mutant name
     = args::ValueFlag<str>(parser, "exchange_name", "Exchange name", {'e', "exchange"}, "kraken");
 
-  exchange_name exident;
-  if (let it = table.find(name.Get()); it != table.end()) {
-    exident = it->second;
-  } else {
-    cout << "Unsupported exchange: " << name << endl;
-    std::cout << parser;
-    return 0;
-  }
-
   // parse the cli args
   try {
     parser.ParseCLI(argc, argv);
   } catch (args::Help&) {
     std::cout << parser;
     return 0;
+  }
+
+  exchange_name exident;
+  if (let it = table.find(name.Get()); it != table.end())
+    exident = it->second;
+  else {
+    cout << "Unsupported exchange: " << name << endl;
+    std::cout << parser;
+    return 1;
   }
 
   // setup the cancellation token for the service to catch console ctrl-c
