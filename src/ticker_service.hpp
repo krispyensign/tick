@@ -17,12 +17,11 @@ using namespace std::chrono_literals;
 
 #define let const auto
 
-#define make_exchange(exname)                         \
-  case exname:                                        \
-    return {                                          \
-      exname##_exchange::create_tick_sub_request,     \
-        exname##_exchange::get_pairs_list,            \
-        exname##_exchange::create_tick_unsub_request, \
+#define make_exchange(exname)                                                        \
+  case exname:                                                                       \
+    return {                                                                         \
+      exname##_exchange::create_tick_sub_request, exname##_exchange::get_pairs_list, \
+        exname##_exchange::create_tick_unsub_request,                                \
     }
 
 #define make_exchange_parser(exname) \
@@ -31,10 +30,9 @@ using namespace std::chrono_literals;
 
 namespace ticker_service {
 
-let select_exchange
-  = [](exchange_name ex) -> tuple<function<str(const vec<str>&)>,
-                                  function<vec<str>(const str&, const str&)>,
-                                  function<str(void)>> {
+let select_exchange = [](exchange_name ex) -> tuple<function<str(const vec<str>&)>,
+                                                    function<vec<str>(const str&, const str&)>,
+                                                    function<str(void)>> {
   switch (ex) {
     make_exchange(kraken);
     default:
@@ -51,8 +49,7 @@ let select_exchange_parser
   }
 };
 
-let send_tick = [](zmq::socket_t& ticker_publisher,
-                   const pair_price_update& event) -> bool {
+let send_tick = [](zmq::socket_t& ticker_publisher, const pair_price_update& event) -> bool {
   // pack it up and send it
   auto buf = stringstream();
   msgpack::pack(buf, event);
@@ -79,8 +76,7 @@ let ws_send = [](ws::client& ticker_ws, const str& in_msg) -> void {
   ticker_ws.send(out_msg).get();
 };
 
-let start_publisher
-  = [](const service_config& conf, zmq::context_t& ctx) -> zmq::socket_t {
+let start_publisher = [](const service_config& conf, zmq::context_t& ctx) -> zmq::socket_t {
   // get a publisher socket
   auto publisher = zmq::socket_t(ctx, zmq::socket_type::pub);
   logger::info("socket provisioned");
@@ -92,10 +88,9 @@ let start_publisher
   return publisher;
 };
 
-let start_websocket
-  = [](const function<str(const vec<str>&)>& create_tick_sub_request_callback,
-       const service_config& conf,
-       const vec<str>& pair_result) -> ws::client {
+let start_websocket = [](const function<str(const vec<str>&)>& create_tick_sub_request_callback,
+                         const service_config& conf,
+                         const vec<str>& pair_result) -> ws::client {
   // configure websocket client
   auto ws_conf = ws::config();
   ws_conf.set_validate_certificates(false);
@@ -115,11 +110,10 @@ let start_websocket
   return wsock;
 };
 
-let ws_handler
-  = [](const atomic_bool& is_running,
-       zmq::socket_t& publisher,
-       const function<optional<pair_price_update>(const str&)>& parse_event,
-       bool is_healthy = false) -> function<void(const ws::in_message& data)> {
+let ws_handler = [](const atomic_bool& is_running,
+                    zmq::socket_t& publisher,
+                    const function<optional<pair_price_update>(const str&)>& parse_event,
+                    bool is_healthy = false) -> function<void(const ws::in_message& data)> {
   return [&](const ws::in_message& data) {
     if (is_running) {
       auto msg = data.extract_string().get();
@@ -127,14 +121,14 @@ let ws_handler
         is_healthy = true;
         logger::info("**ticker healthy**");
         send_tick(publisher, update.value());
-      } else logger::info(msg);
+      } else
+        logger::info(msg);
     }
   };
 };
 
-let tick_service = [](exchange_name ex_name,
-                      const service_config& conf,
-                      const atomic_bool& is_running) -> void {
+let tick_service
+  = [](exchange_name ex_name, const service_config& conf, const atomic_bool& is_running) -> void {
   // configure exchange and perform basic validation on the config
   let[create_tick_sub_request, get_pairs_list, create_tick_unsub_request]
     = select_exchange(ex_name);
@@ -151,8 +145,7 @@ let tick_service = [](exchange_name ex_name,
   auto wsock = start_websocket(create_tick_sub_request, conf, pair_result);
 
   // setup callback for incoming messages
-  wsock.set_message_handler(
-    ws_handler(is_running, publisher, select_exchange_parser(ex_name)));
+  wsock.set_message_handler(ws_handler(is_running, publisher, select_exchange_parser(ex_name)));
   logger::info("callback setup");
 
   // periodically check if service is still alive

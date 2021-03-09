@@ -5,6 +5,7 @@
 #include <future>
 
 #include "ticker_service.hpp"
+#include "types.hpp"
 
 using namespace std;
 // TODO: add main argument parser and options file
@@ -19,9 +20,18 @@ auto signal_handler(int signal) -> void { shutdown_handler(signal); }
 }  // namespace
 
 auto main(i16 argc, c_str argv[]) -> i16 {
-  args::ArgumentParser parser("This is a test program.",
-                              "This goes after the options.");
-  args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
+  args::ArgumentParser parser("This is a test program.");
+  auto cli = cli_config{
+    .help = args::HelpFlag(parser, "help", "Display this help menu", {'h', "help"}),
+    .zbind = args::ValueFlag<str>(parser, "zbind", "TCP URI i.e. tcp://*:9000", {'z', "zbind"}),
+    .ws_uri = args::ValueFlag<str>(parser, "ws_uri", "WebSocket URI i.e. wss://ws.kraken.com",
+                                   {'w', "ws_uri"}),
+    .api_url = args::ValueFlag<str>(parser, "api_url", "API URL i.e https://api.kraken.com",
+                                    {'a', "api_url"}),
+    .asset_path = args::ValueFlag<str>(
+      parser, "assets_path", "URL path to look up exchange assets i.e. /0/public/AssetsPairs",
+      {'p', "asset_paths"})};
+
   try {
     parser.ParseCLI(argc, argv);
   } catch (args::Help) {
@@ -46,10 +56,7 @@ auto main(i16 argc, c_str argv[]) -> i16 {
     };
 
     // launch the service
-    async(launch::async,
-          ticker_service::tick_service,
-          exchange_name::kraken,
-          conf,
+    async(launch::async, ticker_service::tick_service, exchange_name::kraken, conf,
           ref(cancellation_token))
       .get();
 

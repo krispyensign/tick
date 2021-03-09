@@ -51,25 +51,21 @@ let parse_json = [](const str& response_text) -> vec<str> {
   let obj = json_doc["result"].GetObject();
 
   // aggregate the wsnames of each pair to a vector of strings
-  return obj | ranges::views::filter([](const auto& pair) {
-           return pair.value.HasMember("wsname");
-         })
+  return obj
+         | ranges::views::filter([](const auto& pair) { return pair.value.HasMember("wsname"); })
          | ranges::views::transform(
            [](const auto& pair) { return pair.value["wsname"].GetString(); })
          | ranges::to<vec<str>>;
 };
 
-let get_pairs_list
-  = [](const str& api_url, const str& assets_path) -> vec<str> {
+let get_pairs_list = [](const str& api_url, const str& assets_path) -> vec<str> {
   logger::info("getting kraken pairs list");
   // disable ssl configs for now
   auto config = rest::config();
   config.set_validate_certificates(false);
 
   // make the call and get a response back
-  let response = rest::client(api_url, config)
-                   .request(rest::methods::GET, assets_path)
-                   .get();
+  let response = rest::client(api_url, config).request(rest::methods::GET, assets_path).get();
 
   // if not OK then return an error
   if (response.status_code() != rest::status_codes::OK)
@@ -84,9 +80,8 @@ let is_ticker = [](const json::Value& json_val) -> bool {
   let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
   // check each member in the requried members list
-  return ranges::all_of(required_members, [&json_val](const auto& mem) {
-    return json_val.HasMember(mem);
-  });
+  return ranges::all_of(required_members,
+                        [&json_val](const auto& mem) { return json_val.HasMember(mem); });
 };
 
 let parse_event = [](const str& msg_data) -> optional<pair_price_update> {

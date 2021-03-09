@@ -9,6 +9,8 @@
 #include <rapidjson/rapidjson.h>
 #include <spdlog/spdlog.h>
 
+#include <args.hxx>
+
 namespace ws {
 using client = web::websockets::client::websocket_callback_client;
 using in_message = web::websockets::client::websocket_incoming_message;
@@ -49,6 +51,14 @@ struct pair_price_update {
   double ask;
   double bid;
   MSGPACK_DEFINE(trade_name, ask, bid)
+};
+
+struct cli_config {
+  args::HelpFlag help;
+  args::ValueFlag<str> zbind;
+  args::ValueFlag<str> ws_uri;
+  args::ValueFlag<str> api_url;
+  args::ValueFlag<str> asset_path;
 };
 
 #endif
