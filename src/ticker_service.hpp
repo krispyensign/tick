@@ -9,10 +9,7 @@
 #include "kraken.hpp"
 #include "types.hpp"
 
-using std::atomic_bool;
-using std::function;
-using std::stringstream;
-using namespace std::chrono_literals;
+using namespace std;
 
 #define let const auto
 
@@ -85,7 +82,7 @@ let start_websocket = [](const function<str(const vec<str>&)>& create_tick_sub_r
   logger::info("websocket connected");
 
   // serialize the subscription request and send it off
-  auto subscription = create_tick_sub_request_callback(pair_result);
+  let subscription = create_tick_sub_request_callback(pair_result);
   logger::info("sending subscription:");
   logger::info(subscription);
   ws_send(wsock, subscription);
@@ -99,8 +96,8 @@ let ws_handler = [](const atomic_bool& is_running,
                     bool is_healthy = false) -> function<void(const ws::in_message& data)> {
   return [&](const ws::in_message& data) {
     if (is_running) {
-      auto msg = data.extract_string().get();
-      if (auto update = parse_event(msg); update != null and is_healthy) {
+      let msg = data.extract_string().get();
+      if (let update = parse_event(msg); update != null and is_healthy) {
         is_healthy = true;
         logger::info("**ticker healthy**");
         send_tick(publisher, update.value());
@@ -133,12 +130,12 @@ let tick_service
 
   // periodically check if service is still alive
   logger::info("sleeping, waiting for shutdown");
-  while (is_running) std::this_thread::sleep_for(100ms);
+  while (is_running) this_thread::sleep_for(100ms);
 
   // stop the work vent first
   logger::info("got shutdown signal");
   ws_send(wsock, exi.create_tick_unsub_request());
-  std::this_thread::sleep_for(100ms);
+  this_thread::sleep_for(100ms);
   wsock.close();
 
   // then stop the sink
