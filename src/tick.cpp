@@ -27,7 +27,7 @@ def main(i16 argc, c_str argv[]) -> i16 {
   try {
     parser.ParseCLI(argc, argv);
   } catch (args::Help&) {
-    std::cout << parser;
+    fmt::print(parser);
     return 0;
   }
 
