@@ -1,17 +1,6 @@
 #ifndef kraken_hpp
 #define kraken_hpp
-#include <rapidjson/document.h>
-#include <rapidjson/rapidjson.h>
-#include <rapidjson/stringbuffer.h>
-#include <rapidjson/writer.h>
-
-#include <range/v3/all.hpp>
-
 #include "types.hpp"
-
-using std::optional;
-
-#define let const auto
 
 namespace kraken_exchange {
 
@@ -46,7 +35,7 @@ let create_tick_sub_request = [](const vec<str>& pairs) -> str {
 
 let parse_json = [](const str& response_text) -> vec<str> {
   // provision and parse doc
-  auto json_doc = json::Document();
+  mutant json_doc = json::Document();
   json_doc.Parse(response_text.c_str());
 
   // validate it parsed correctly and has the field "result"
@@ -65,7 +54,7 @@ let parse_json = [](const str& response_text) -> vec<str> {
 let get_pairs_list = []() -> vec<str> {
   logger::info("getting kraken pairs list");
   // disable ssl configs for now
-  auto config = rest::config();
+  mutant config = rest::config();
   config.set_validate_certificates(false);
 
   // make the call and get a response back
