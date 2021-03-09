@@ -20,7 +20,7 @@ auto signal_handler(int signal) -> void { shutdown_handler(signal); }
 }  // namespace
 
 auto main(i16 argc, c_str argv[]) -> i16 {
-  args::ArgumentParser parser("This is a test program.");
+  args::ArgumentParser parser("Websocket and ZeroMQ tick replicator");
   auto cli = cli_config{
     .help = args::HelpFlag(parser, "help", "Display this help menu", {'h', "help"}),
     .zbind = args::ValueFlag<str>(parser, "zbind", "TCP URI i.e. tcp://*:9000", {'z', "zbind"}),
