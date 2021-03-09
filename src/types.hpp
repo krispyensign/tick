@@ -39,13 +39,6 @@ enum exchange_name {
   kraken,
 };
 
-struct service_config {
-  str zbind;
-  str ws_uri;
-  str api_url;
-  str assets_path;
-};
-
 struct pair_price_update {
   str trade_name;
   double ask;
@@ -56,9 +49,7 @@ struct pair_price_update {
 struct cli_config {
   args::HelpFlag help;
   args::ValueFlag<str> zbind;
-  args::ValueFlag<str> ws_uri;
-  args::ValueFlag<str> api_url;
-  args::ValueFlag<str> asset_path;
+  args::ValueFlag<exchange_name> exchange;
 };
 
 #endif

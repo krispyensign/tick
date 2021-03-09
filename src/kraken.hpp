@@ -15,6 +15,10 @@ using std::optional;
 
 namespace kraken_exchange {
 
+let ws_uri = "wss://ws.kraken.com";
+let api_url = "https://api.kraken.com";
+let assets_path = "/0/public/AssetPairs";
+
 let create_tick_unsub_request = []() -> str {
   return R"EOF(
     {
@@ -58,7 +62,7 @@ let parse_json = [](const str& response_text) -> vec<str> {
          | ranges::to<vec<str>>;
 };
 
-let get_pairs_list = [](const str& api_url, const str& assets_path) -> vec<str> {
+let get_pairs_list = []() -> vec<str> {
   logger::info("getting kraken pairs list");
   // disable ssl configs for now
   auto config = rest::config();
