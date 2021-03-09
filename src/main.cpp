@@ -1,10 +1,10 @@
 #define BACKWARD_HAS_LIBUNWIND 1
-#include "ticker_service.hpp"
-
 #include <spdlog/spdlog.h>
 
 #include <backward.hpp>
 #include <future>
+
+#include "ticker_service.hpp"
 
 using namespace std;
 // TODO: add main argument parser and options file
@@ -19,6 +19,15 @@ auto signal_handler(int signal) -> void { shutdown_handler(signal); }
 }  // namespace
 
 auto main(i16 argc, c_str argv[]) -> i16 {
+  args::ArgumentParser parser("This is a test program.",
+                              "This goes after the options.");
+  args::HelpFlag help(parser, "help", "Display this help menu", {'h', "help"});
+  try {
+    parser.ParseCLI(argc, argv);
+  } catch (args::Help) {
+    std::cout << parser;
+    return 0;
+  }
   // setup the cancellation token for the service to catch console ctrl-c
   auto cancellation_token = atomic_bool(true);
   shutdown_handler = [&cancellation_token](int a) -> void {
@@ -37,12 +46,11 @@ auto main(i16 argc, c_str argv[]) -> i16 {
     };
 
     // launch the service
-    async(
-      launch::async,
-      ticker_service::tick_service,
-      exchange_name::kraken,
-      conf,
-      ref(cancellation_token))
+    async(launch::async,
+          ticker_service::tick_service,
+          exchange_name::kraken,
+          conf,
+          ref(cancellation_token))
       .get();
 
   } catch (const exception& e) {
