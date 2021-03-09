@@ -58,7 +58,7 @@ auto main(i16 argc, c_str argv[]) -> i16 {
     logger::info("using exchange: {}", name.Get());
     logger::info("using publisher binding: {}", zbind.Get());
     async(launch::async, ticker_service::tick_service, exident, zbind.Get(),
-          ref(cancellation_token))
+          cref(cancellation_token))
       .get();
   } catch (const exception& e) {
     logger::error(e.what());
