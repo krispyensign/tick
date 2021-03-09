@@ -92,16 +92,19 @@ let start_websocket = [](const function<str(const vec<str>&)>& create_tick_sub_r
 
 let ws_handler = [](const atomic_bool& is_running,
                     zmq::socket_t& publisher,
-                    const function<optional<pair_price_update>(const str&)>& parse_event,
-                    bool is_healthy = false) -> function<void(const ws::in_message& data)> {
-  return [&](const ws::in_message& data) {
+                    const function<optional<pair_price_update>(const str&)>& parse_event)
+  -> function<void(const ws::in_message& data)> {
+  return [&, is_healthy = false](const ws::in_message& data) mutable {
     if (is_running) {
       let msg = data.extract_string().get();
-      if (let update = parse_event(msg); update != null and is_healthy) {
+      let update = parse_event(msg);
+      if (update != null and not is_healthy) {
         is_healthy = true;
         logger::info("**ticker healthy**");
         send_tick(publisher, update.value());
-      } else
+      } else if (update != null and is_healthy)
+        send_tick(publisher, update.value());
+      else
         logger::info(msg);
     }
   };

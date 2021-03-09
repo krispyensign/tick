@@ -1,7 +1,7 @@
-#include "args.hxx"
 #define BACKWARD_HAS_LIBUNWIND 1
 #include <spdlog/spdlog.h>
 
+#include <args.hxx>
 #include <backward.hpp>
 #include <future>
 
@@ -55,6 +55,8 @@ auto main(i16 argc, c_str argv[]) -> i16 {
 
   // launch the service
   try {
+    logger::info("using exchange: {}", name.Get());
+    logger::info("using publisher binding: {}", zbind.Get());
     async(launch::async, ticker_service::tick_service, exident, zbind.Get(),
           ref(cancellation_token))
       .get();
