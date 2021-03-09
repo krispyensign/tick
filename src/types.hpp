@@ -28,6 +28,7 @@ using std::optional;
 
 #define let const auto
 #define mutant auto
+#define def auto
 
 namespace ws {
 using client = web::websockets::client::websocket_callback_client;

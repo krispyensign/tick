@@ -2,9 +2,6 @@
 #define ticker_service_hpp
 #include "kraken.hpp"
 
-#define let const auto
-#define mutant auto
-
 using namespace std;
 
 #define make_exchange(exname)                                                         \

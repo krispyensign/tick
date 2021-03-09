@@ -3,11 +3,9 @@
 #include "ticker_service.hpp"
 
 using namespace std;
+
 // setup stacktracing
 backward::SignalHandling sh;
-#define let const auto
-#define mutant auto
-#define def auto
 
 // handlers for graceful shutdown on ctrl-c
 namespace {
