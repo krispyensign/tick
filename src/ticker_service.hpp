@@ -110,9 +110,9 @@ let tick_service
   wsock.set_message_handler(ws_handler(is_running, publisher, exi.parse_event));
   logger::info("callback setup. waiting for shutdown");
   while (is_running) this_thread::sleep_for(100ms);
+  logger::info("got shutdown signal");
 
   // stop the work vent first
-  logger::info("got shutdown signal");
   ws_send(wsock, exi.create_tick_unsub_request());
   this_thread::sleep_for(100ms);
   wsock.close();
