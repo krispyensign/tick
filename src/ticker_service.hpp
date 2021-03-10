@@ -30,20 +30,17 @@ let select_exchange = [](exchange_name ex) -> exchange_interface {
   }
 };
 
-let send_tick = [](socket_t& ticker_publisher, const pair_price_update& event) -> bool {
+let send_tick = [](socket_t& ticker_publisher, const pair_price_update& event) -> void {
   // pack it up and send it
   mutant buf = stringstream();
   pack(buf, event);
   ticker_publisher.send(message_t(buf.str()), send_flags::none);
-  return true;
 };
 
 let ws_send = [](websocket_callback_client& ticker_ws, const str& in_msg) -> void {
-  // create a utf-8 websocket envolope
+  // create a utf-8 websocket envolope and send it
   mutant out_msg = websocket_outgoing_message();
   out_msg.set_utf8_message(in_msg);
-
-  // send it
   ticker_ws.send(out_msg).get();
 };
 
@@ -51,8 +48,6 @@ let start_publisher = [](const str& zbind, context_t& ctx) -> socket_t {
   // get a publisher socket
   mutant publisher = socket_t(ctx, socket_type::pub);
   publisher.bind(zbind);
-  logger::info("socket bound");
-
   return publisher;
 };
 
@@ -68,7 +63,6 @@ let start_websocket = [](const function<str(const vec<str>&)>& create_tick_sub_r
   let subscription = create_tick_sub_request_callback(pair_result);
   ws_send(wsock, subscription);
   logger::info("subscription sent: {}", subscription);
-
   return wsock;
 };
 
@@ -106,12 +100,13 @@ let tick_service
   let pair_result = exi.get_pairs_list();
   logger::info("got pairs");
 
-  // provision all the endpoints and connections
+  // setup publisher
   mutant ctx = context_t(1);
   mutant publisher = start_publisher(zbind, ctx);
-  mutant wsock = start_websocket(exi.create_tick_sub_request, exi.ws_uri, pair_result);
+  logger::info("socket bound");
 
-  // setup callback for incoming messages
+  // start websocket adn setup callback for incoming messages
+  mutant wsock = start_websocket(exi.create_tick_sub_request, exi.ws_uri, pair_result);
   wsock.set_message_handler(ws_handler(is_running, publisher, exi.parse_event));
   logger::info("callback setup. waiting for shutdown");
   while (is_running) this_thread::sleep_for(100ms);
