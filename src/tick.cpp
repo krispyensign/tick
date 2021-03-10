@@ -1,7 +1,13 @@
 #define BACKWARD_HAS_LIBUNWIND 1
 #include "ticker_service.hpp"
 
-using namespace std;
+#include <future>
+
+#include "args.hxx"
+#include "backward.hpp"
+
+using std::cout, std::launch, std::exception, args::HelpFlag, args::ArgumentParser, args::ValueFlag,
+  args::Help, ticker_service::tick_service;
 
 // setup stacktracing
 backward::SignalHandling sh;
@@ -12,17 +18,17 @@ def signal_handler(int signal)->void { shutdown_handler(signal); }
 
 def main(i16 argc, c_str argv[])->i16 {
   // setup the parser
-  mutant parser = args::ArgumentParser("Websocket and ZeroMQ tick replicator");
-  let help = args::HelpFlag(parser, "help", "Display this help menu", {'h', "help"});
+  mutant parser = ArgumentParser("Websocket and ZeroMQ tick replicator");
+  let help = HelpFlag(parser, "help", "Display this help menu", {'h', "help"});
   mutant zbind
-    = args::ValueFlag<str>(parser, "zbind", "Publisher queue Uri", {'z', "zbind"}, "tcp://*:9000");
+    = ValueFlag<str>(parser, "zbind", "Publisher queue Uri", {'z', "zbind"}, "tcp://*:9000");
   mutant name
-    = args::ValueFlag<str>(parser, "exchange_name", "Exchange name", {'e', "exchange"}, "kraken");
+    = ValueFlag<str>(parser, "exchange_name", "Exchange name", {'e', "exchange"}, "kraken");
 
   // parse the cli args
   try {
     parser.ParseCLI(argc, argv);
-  } catch (args::Help&) {
+  } catch (Help&) {
     cout << parser;
     return 0;
   }
@@ -45,9 +51,7 @@ def main(i16 argc, c_str argv[])->i16 {
   // launch the service
   try {
     logger::info("using exchange [{}] and publisher binding [{}] ", name.Get(), zbind.Get());
-    async(launch::async, ticker_service::tick_service, exid.value(), zbind.Get(),
-          cref(cancellation_token))
-      .get();
+    async(launch::async, tick_service, exid.value(), zbind.Get(), cref(cancellation_token)).get();
   } catch (const exception& e) {
     logger::error(e.what());
     throw;

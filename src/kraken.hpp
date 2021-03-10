@@ -1,6 +1,21 @@
 #ifndef kraken_hpp
 #define kraken_hpp
+#include <range/v3/algorithm/all_of.hpp>
+
+#include <cpprest/http_client.h>
+#include <fmt/format.h>
+#include <rapidjson/document.h>
+#include <rapidjson/rapidjson.h>
+
+#include <range/v3/to_container.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/transform.hpp>
+
 #include "types.hpp"
+
+using web::http::client::http_client, web::http::methods, web::http::status_codes,
+  rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
+  ranges::views::transform, ranges::to, ranges::all_of;
 
 namespace kraken_exchange {
 
@@ -30,12 +45,12 @@ let create_tick_sub_request = [](const vec<str>& pairs) -> str {
       }}
     }}
   )EOF";
-  return fmt::format(json_doc, fmt::join(pairs, "\",\""));
+  return format(json_doc, join(pairs, "\",\""));
 };
 
 let parse_json = [](const str& response_text) -> vec<str> {
   // provision and parse doc
-  mutant json_doc = json::Document();
+  mutant json_doc = Document();
   json_doc.Parse(response_text.c_str());
 
   // validate it parsed correctly and has the field "result"
@@ -44,41 +59,33 @@ let parse_json = [](const str& response_text) -> vec<str> {
   let obj = json_doc["result"].GetObject();
 
   // aggregate the wsnames of each pair to a vector of strings
-  return obj
-         | ranges::views::filter([](const auto& pair) { return pair.value.HasMember("wsname"); })
-         | ranges::views::transform(
-           [](const auto& pair) { return pair.value["wsname"].GetString(); })
-         | ranges::to<vec<str>>;
+  return obj | filter([](const auto& pair) { return pair.value.HasMember("wsname"); })
+         | transform([](const auto& pair) { return pair.value["wsname"].GetString(); })
+         | to<vec<str>>;
 };
 
 let get_pairs_list = []() -> vec<str> {
-  logger::info("getting kraken pairs list");
-  // disable ssl configs for now
-  mutant config = rest::config();
-  config.set_validate_certificates(false);
-
   // make the call and get a response back
-  let response = rest::client(api_url, config).request(rest::methods::GET, assets_path).get();
+  let response = http_client(api_url).request(methods::GET, assets_path).get();
 
   // if not OK then return an error
-  if (response.status_code() != rest::status_codes::OK)
-    throw error("returned " + std::to_string(response.status_code()));
+  if (response.status_code() != status_codes::OK)
+    throw error(format("returned: {}", response.status_code()));
 
   // extract and parse
   return parse_json(response.extract_string().get());
 };
 
-let is_ticker = [](const json::Value& json_val) -> bool {
+let is_ticker = [](const Value& json_val) -> bool {
   // validate the payload has the following fields
   let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
   // check each member in the requried members list
-  return ranges::all_of(required_members,
-                        [&json_val](const auto& mem) { return json_val.HasMember(mem); });
+  return all_of(required_members, [&json_val](const auto& mem) { return json_val.HasMember(mem); });
 };
 
 let parse_event = [](const str& msg_data) -> optional<pair_price_update> {
-  mutant msg = json::Document();
+  mutant msg = Document();
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
