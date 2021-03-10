@@ -1,6 +1,5 @@
 #ifndef types_hpp
 #define types_hpp
-#include <range/v3/all.hpp>
 #include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
 #include <cpprest/ws_client.h>
@@ -18,6 +17,7 @@
 #include <memory>
 #include <msgpack.hpp>
 #include <optional>
+#include <range/v3/all.hpp>
 #include <thread>
 #include <unordered_map>
 #include <zmq.hpp>
@@ -55,13 +55,18 @@ using response = web::http::http_response;
 
 }  // namespace rest
 
+#define make_exchange(x)                   \
+  if (lookup == #x) return exchange_name { \
+      exchange_name::x                     \
+    }
+
 struct exchange_name {
   enum inner {
     kraken,
   } inner;
 
   static def as_enum(const str& lookup)->optional<exchange_name> {
-    if (lookup == "kraken") return exchange_name{exchange_name::kraken};
+    make_exchange(kraken);
     return null;
   };
 };
