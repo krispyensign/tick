@@ -1,16 +1,6 @@
 #ifndef kraken_hpp
 #define kraken_hpp
-#include <range/v3/algorithm/all_of.hpp>
-
-#include <cpprest/http_client.h>
-#include <fmt/format.h>
-#include <rapidjson/document.h>
-#include <rapidjson/rapidjson.h>
-
-#include <range/v3/to_container.hpp>
-#include <range/v3/view/filter.hpp>
-#include <range/v3/view/transform.hpp>
-
+#include "deps.hpp"
 #include "types.hpp"
 
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
