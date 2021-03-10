@@ -1,5 +1,7 @@
 #ifndef types_hpp
 #define types_hpp
+#include <range/v3/all.hpp>
+
 #include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
 #include <cpprest/ws_client.h>
@@ -17,7 +19,6 @@
 #include <memory>
 #include <msgpack.hpp>
 #include <optional>
-#include <range/v3/all.hpp>
 #include <thread>
 #include <unordered_map>
 #include <zmq.hpp>
