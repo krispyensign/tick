@@ -105,7 +105,7 @@ let tick_service
   mutant publisher = start_publisher(zbind, ctx);
   logger::info("socket bound");
 
-  // start websocket adn setup callback for incoming messages
+  // start websocket and setup callback for incoming messages
   mutant wsock = start_websocket(exi.create_tick_sub_request, exi.ws_uri, pair_result);
   wsock.set_message_handler(ws_handler(is_running, publisher, exi.parse_event));
   logger::info("callback setup. waiting for shutdown");
