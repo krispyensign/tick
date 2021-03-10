@@ -1,22 +1,22 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
 #include "kraken.hpp"
+#include "types.hpp"
 
 using namespace std;
-
-#define make_exchange(exname)                                                         \
-  case exname:                                                                        \
-    return {                                                                          \
-      exname##_exchange::create_tick_sub_request, exname##_exchange::get_pairs_list,  \
-        exname##_exchange::create_tick_unsub_request, exname##_exchange::parse_event, \
-        exname##_exchange::ws_uri                                                     \
-    }
 
 namespace ticker_service {
 
 let select_exchange = [](exchange_name ex) -> exchange_interface {
-  switch (ex) {
-    make_exchange(kraken);
+  switch (ex.inner) {
+    case exchange_name::kraken:
+      return {
+        kraken_exchange::create_tick_sub_request,
+        kraken_exchange::get_pairs_list,
+        kraken_exchange::create_tick_unsub_request,
+        kraken_exchange::parse_event,
+        kraken_exchange::ws_uri,
+      };
     default:
       throw error("unrecognized exchange");
   }
@@ -66,8 +66,7 @@ let start_websocket = [](const function<str(const vec<str>&)>& create_tick_sub_r
 
   // serialize the subscription request and send it off
   let subscription = create_tick_sub_request_callback(pair_result);
-  logger::info("sending subscription:");
-  logger::info(subscription);
+  logger::info("sending subscription: {}", subscription);
   ws_send(wsock, subscription);
 
   return wsock;

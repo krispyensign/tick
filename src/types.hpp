@@ -1,7 +1,6 @@
 #ifndef types_hpp
 #define types_hpp
 #include <range/v3/all.hpp>
-
 #include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
 #include <cpprest/ws_client.h>
@@ -18,7 +17,9 @@
 #include <future>
 #include <memory>
 #include <msgpack.hpp>
+#include <optional>
 #include <thread>
+#include <unordered_map>
 #include <zmq.hpp>
 
 #include "base_types.hpp"
@@ -54,8 +55,15 @@ using response = web::http::http_response;
 
 }  // namespace rest
 
-enum exchange_name {
-  kraken,
+struct exchange_name {
+  enum inner {
+    kraken,
+  } inner;
+
+  static def as_enum(const str& lookup)->optional<exchange_name> {
+    if (lookup == "kraken") return exchange_name{exchange_name::kraken};
+    return null;
+  };
 };
 
 struct pair_price_update {
@@ -63,12 +71,6 @@ struct pair_price_update {
   double ask;
   double bid;
   MSGPACK_DEFINE(trade_name, ask, bid)
-};
-
-struct cli_config {
-  args::HelpFlag help;
-  args::ValueFlag<str> zbind;
-  args::ValueFlag<exchange_name> exchange;
 };
 
 struct exchange_interface {

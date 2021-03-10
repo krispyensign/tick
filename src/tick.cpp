@@ -1,5 +1,4 @@
 #define BACKWARD_HAS_LIBUNWIND 1
-
 #include "ticker_service.hpp"
 
 using namespace std;
@@ -8,15 +7,12 @@ using namespace std;
 backward::SignalHandling sh;
 
 // handlers for graceful shutdown on ctrl-c
-namespace {
 function<void(int)> shutdown_handler;
-def signal_handler(int signal) -> void { shutdown_handler(signal); }
-}  // namespace
+def signal_handler(int signal)->void { shutdown_handler(signal); }
 
-def main(i16 argc, c_str argv[]) -> i16 {
-  let table = unordered_map<str, exchange_name>{{"kraken", exchange_name::kraken}};
+def main(i16 argc, c_str argv[])->i16 {
   // setup the parser
-  args::ArgumentParser parser("Websocket and ZeroMQ tick replicator");
+  mutant parser = args::ArgumentParser("Websocket and ZeroMQ tick replicator");
   let help = args::HelpFlag(parser, "help", "Display this help menu", {'h', "help"});
   mutant zbind
     = args::ValueFlag<str>(parser, "zbind", "Publisher queue Uri", {'z', "zbind"}, "tcp://*:9000");
@@ -31,28 +27,25 @@ def main(i16 argc, c_str argv[]) -> i16 {
     return 0;
   }
 
-  exchange_name exident;
-  if (let it = table.find(name.Get()); it != table.end())
-    exident = it->second;
-  else {
-    cout << "Unsupported exchange: " << name << endl;
-    std::cout << parser;
+  // check if the exchange name maps
+  let exid = exchange_name::as_enum(name.Get());
+  if (exid == null) {
+    cout << "Unsupported exchange: " << name.Get() << parser;
     return 1;
   }
 
   // setup the cancellation token for the service to catch console ctrl-c
   mutant cancellation_token = atomic_bool(true);
   shutdown_handler = [&cancellation_token](int a) -> void {
-    logger::info(fmt::format("Got signal: {}", a));
+    logger::info("Got signal: {}", a);
     cancellation_token = false;
   };
   signal(SIGINT, signal_handler);
 
   // launch the service
   try {
-    logger::info("using exchange: {}", name.Get());
-    logger::info("using publisher binding: {}", zbind.Get());
-    async(launch::async, ticker_service::tick_service, exident, zbind.Get(),
+    logger::info("using exchange [{}] and publisher binding [{}] ", name.Get(), zbind.Get());
+    async(launch::async, ticker_service::tick_service, exid.value(), zbind.Get(),
           cref(cancellation_token))
       .get();
   } catch (const exception& e) {
