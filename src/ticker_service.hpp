@@ -1,15 +1,7 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
-#define FMT_HEADER_ONLY 1
+#include "deps.hpp"
 #include "kraken.hpp"
-
-#include <cpprest/ws_client.h>
-#include <spdlog/spdlog.h>
-
-#include <zmq.hpp>
-
-#include "base_types.hpp"
-#include "types.hpp"
 
 namespace this_thread = std::this_thread;
 namespace logger = spdlog;
@@ -130,6 +122,6 @@ let tick_service
   ctx.shutdown();
   logger::info("shutdown complete");
 };
-}
+}  // namespace ticker_service
 
 #endif

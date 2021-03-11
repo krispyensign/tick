@@ -1,10 +1,6 @@
 #define BACKWARD_HAS_LIBUNWIND 1
+#include "deps.hpp"
 #include "ticker_service.hpp"
-
-#include <future>
-
-#include "args.hxx"
-#include "backward.hpp"
 
 using std::cout, std::launch, std::exception, args::HelpFlag, args::ArgumentParser, args::ValueFlag,
   args::Help, ticker_service::tick_service;
@@ -14,9 +10,9 @@ backward::SignalHandling sh;
 
 // handlers for graceful shutdown on ctrl-c
 function<void(int)> shutdown_handler;
-def signal_handler(int signal)->void { shutdown_handler(signal); }
+def signal_handler(int signal) ->void { shutdown_handler(signal); }
 
-def main(i16 argc, c_str argv[])->i16 {
+def main(i16 argc, c_str argv[]) -> i16 {
   // setup the parser
   mutant parser = ArgumentParser("Websocket and ZeroMQ tick replicator");
   let help = HelpFlag(parser, "help", "Display this help menu", {'h', "help"});
@@ -36,7 +32,8 @@ def main(i16 argc, c_str argv[])->i16 {
   // check if the exchange name maps
   let exid = exchange_name::as_enum(name.Get());
   if (exid == null) {
-    cout << "Unsupported exchange: " << name.Get() << parser;
+    logger::error("Unsupported exchange: {}", name.Get());
+    cout << parser;
     return 1;
   }
 

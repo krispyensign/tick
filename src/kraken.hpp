@@ -1,17 +1,6 @@
 #ifndef kraken_hpp
 #define kraken_hpp
-#define FMT_HEADER_ONLY 1
-#include <range/v3/algorithm/all_of.hpp>
-#include <range/v3/range/conversion.hpp>
-#include <range/v3/view/filter.hpp>
-#include <range/v3/view/transform.hpp>
-
-#include <cpprest/http_client.h>
-#include <fmt/format.h>
-#include <rapidjson/document.h>
-#include <rapidjson/rapidjson.h>
-
-#include "types.hpp"
+#include "deps.hpp"
 
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
   rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
@@ -36,7 +25,7 @@ let create_tick_unsub_request = []() -> str {
 
 let create_tick_sub_request = [](const vec<str>& pairs) -> str {
   // allocate root dom
-  let json_doc = R"EOF(
+  return format(R"EOF(
     {{
       "event": "subscribe",
       "pair": ["{}"],
@@ -44,8 +33,8 @@ let create_tick_sub_request = [](const vec<str>& pairs) -> str {
         "name": "ticker"
       }}
     }}
-  )EOF";
-  return format(json_doc, join(pairs, "\",\""));
+  )EOF",
+                join(pairs, "\",\""));
 };
 
 let parse_json = [](const str& response_text) -> vec<str> {
@@ -76,37 +65,26 @@ let get_pairs_list = []() -> vec<str> {
   return parse_json(response.extract_string().get());
 };
 
-let is_ticker = [](const Value& json_val) -> bool {
-  // validate the payload has the following fields
-  let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
-
-  // check each member in the requried members list
-  return all_of(required_members, [&json_val](const auto& mem) { return json_val.HasMember(mem); });
-};
-
 let parse_event = [](const str& msg_data) -> optional<pair_price_update> {
   mutant msg = Document();
   msg.Parse(msg_data.c_str());
 
   // validate the event parsed and there were not errors on the message itself
-  if (msg.HasParseError()) throw error("failed to parse: " + msg_data);
-
-  // if message is {} object and is an error object then throw
-  if (msg.IsObject() and msg.HasMember("errorMessage"))
+  if (msg.HasParseError())
+    throw error("failed to parse: " + msg_data);
+  else if (msg.IsObject() and msg.HasMember("errorMessage"))
     throw error(msg["errorMessage"].GetString());
 
-  // validate it is a kraken publication type.  all kraken publications are
-  // arrays of size 4
+  // validate it is a kraken publication type.  all kraken publications are arrays of size 4 then
+  // cast it to an array
   if (not msg.IsArray() or msg.Size() != 4) return null;
-
-  // cast the message to a publication array
   let publication = msg.GetArray();
 
-  // get the payload from the publication as an object
-  let payload = publication[1].GetObject();
-
   // validate the payload is a tick object
-  if (not is_ticker(payload)) return null;
+  let payload = publication[1].GetObject();
+  let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
+  if (not all_of(required_members, [&payload](const auto& mem) { return payload.HasMember(mem); }))
+    return null;
 
   // construct a neutral format for the price update event
   return pair_price_update{
@@ -115,5 +93,5 @@ let parse_event = [](const str& msg_data) -> optional<pair_price_update> {
     .bid = atof(payload["b"][0].GetString()),
   };
 };
-}
+}  // namespace kraken_exchange
 #endif
