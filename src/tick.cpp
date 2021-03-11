@@ -1,9 +1,10 @@
+#include <atomic>
 #define BACKWARD_HAS_LIBUNWIND 1
 #include "deps.hpp"
 #include "ticker_service.hpp"
 
 using std::cout, std::launch, std::exception, args::HelpFlag, args::ArgumentParser, args::ValueFlag,
-  args::Help, ticker_service::tick_service;
+  args::Help, ticker_service::tick_service, std::atomic_bool;
 
 // setup stacktracing
 backward::SignalHandling sh;

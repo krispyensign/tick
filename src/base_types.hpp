@@ -19,6 +19,8 @@ typedef char *c_str;
 typedef std::string str;
 const auto null = std::nullopt;
 using error = std::runtime_error;
+using AtomicBool = const std::atomic_bool&;
+using String = const str&;
 
 template <typename T>
 using vec = std::vector<T, std::allocator<T>>;
