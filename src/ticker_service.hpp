@@ -1,7 +1,7 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
 #include "deps.hpp"
-#include "kraken.hpp"
+#include "kraken_tick.hpp"
 
 namespace this_thread = std::this_thread;
 namespace logger = spdlog;
