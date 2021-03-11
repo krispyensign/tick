@@ -73,14 +73,11 @@ let ws_handler = [](const atomic_bool& is_running,
   return [&, is_healthy = false](const websocket_incoming_message& data) mutable {
     if (is_running) {
       let msg = data.extract_string().get();
-      let update = parse_event(msg);
-
-      if (update != null and not is_healthy) {
+      if (let update = parse_event(msg); update != null and not is_healthy) {
         is_healthy = true;
         logger::info("**ticker healthy**");
-      }
-
-      if (update != null)
+        send_tick(publisher, update.value());
+      } else if (update != null and is_healthy)
         send_tick(publisher, update.value());
       else
         logger::info(msg);
