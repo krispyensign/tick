@@ -1,6 +1,16 @@
 #ifndef kraken_hpp
 #define kraken_hpp
-#include "deps.hpp"
+#define FMT_HEADER_ONLY 1
+#include <range/v3/algorithm/all_of.hpp>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/transform.hpp>
+
+#include <cpprest/http_client.h>
+#include <fmt/format.h>
+#include <rapidjson/document.h>
+#include <rapidjson/rapidjson.h>
+
 #include "types.hpp"
 
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
@@ -60,7 +70,7 @@ let get_pairs_list = []() -> vec<str> {
 
   // if not OK then return an error
   if (response.status_code() != status_codes::OK)
-    throw error(format("returned: {}", response.status_code()));
+    throw error("returned: " + std::to_string(response.status_code()));
 
   // extract and parse
   return parse_json(response.extract_string().get());
@@ -105,6 +115,5 @@ let parse_event = [](const str& msg_data) -> optional<pair_price_update> {
     .bid = atof(payload["b"][0].GetString()),
   };
 };
-}  // namespace kraken_exchange
-
+}
 #endif

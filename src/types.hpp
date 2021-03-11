@@ -9,6 +9,7 @@ using std::optional;
 #define let const auto
 #define mutant auto
 #define def auto
+#define fn std::function
 
 #define make_exchange(x)                   \
   if (lookup == #x) return exchange_name { \

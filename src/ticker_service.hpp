@@ -1,6 +1,15 @@
 #ifndef ticker_service_hpp
 #define ticker_service_hpp
+#define FMT_HEADER_ONLY 1
 #include "kraken.hpp"
+
+#include <cpprest/ws_client.h>
+#include <spdlog/spdlog.h>
+
+#include <zmq.hpp>
+
+#include "base_types.hpp"
+#include "types.hpp"
 
 namespace this_thread = std::this_thread;
 namespace logger = spdlog;
@@ -14,7 +23,6 @@ using zmq::socket_t, zmq::context_t, zmq::message_t,
   msgpack::pack, zmq::send_flags, zmq::socket_type;
 
 namespace ticker_service {
-
 let select_exchange = [](exchange_name ex) -> exchange_interface {
   switch (ex.inner) {
     case exchange_name::kraken:
@@ -122,7 +130,6 @@ let tick_service
   ctx.shutdown();
   logger::info("shutdown complete");
 };
-
-}  // namespace ticker_service
+}
 
 #endif
