@@ -5,23 +5,13 @@
 
 namespace this_thread = std::this_thread;
 namespace logger = spdlog;
+
 using namespace std::chrono_literals;
 using web::uri;
 
 namespace ticker_service {
 let select_exchange = [](exchange_name ex) -> exchange_interface {
-  switch (ex.inner) {
-    case exchange_name::kraken:
-      return {
-        kraken_exchange::create_tick_sub_request,
-        kraken_exchange::get_pairs_list,
-        kraken_exchange::create_tick_unsub_request,
-        kraken_exchange::parse_event,
-        kraken_exchange::ws_uri,
-      };
-    default:
-      throw error("unrecognized exchange");
-  }
+  switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); }
 };
 
 let ws_handler = [](AtomicBool is_running,

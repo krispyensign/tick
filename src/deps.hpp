@@ -18,10 +18,8 @@
 #include <args.hxx>
 #include <backward.hpp>
 #include <future>
+#include <msgpack.hpp>
 #include <zmq.hpp>
-
-#include "base_types.hpp"
-#include "types.hpp"
 
 typedef std::shared_ptr<zmq::context_t> Context;
 
@@ -30,16 +28,18 @@ struct _publisher {
   zmq::socket_t sock;
 
  public:
-  _publisher(Context ctx, const str& bind_addr) {
+  _publisher(Context ctx, const std::string& bind_addr) {
     sock = zmq::socket_t(*ctx, zmq::socket_type::pub);
     sock.bind(bind_addr);
   }
   ~_publisher() { sock.close(); }
-  auto send(const str& msg) -> void { sock.send(zmq::message_t(msg), zmq::send_flags::none); }
+  auto send(const std::string& msg) -> void {
+    sock.send(zmq::message_t(msg), zmq::send_flags::none);
+  };
 };
 typedef std::shared_ptr<_publisher> Publisher;
 
-inline auto make_publisher(Context ctx, const str& bind_addr) -> Publisher {
+inline auto make_publisher(Context ctx, const std::string& bind_addr) -> Publisher {
   return std::make_shared<_publisher>(ctx, bind_addr);
 }
 
@@ -48,7 +48,7 @@ inline auto make_context(int threads) -> Context {
 }
 
 struct Encoder {
-  static auto encode(const str& enc) -> str {
+  static auto encode(const std::string& enc) -> std::string {
     auto buf = std::stringstream();
     msgpack::pack(buf, enc);
     return buf.str();
@@ -62,10 +62,10 @@ struct _websocket {
   web::websockets::client::websocket_callback_client client;
 
  public:
-  _websocket(const str& address) { client.connect(address).get(); }
+  _websocket(const std::string& address) { client.connect(address).get(); }
   ~_websocket() { client.close(); }
 
-  auto send(const str& msg) -> void {
+  auto send(const std::string& msg) -> void {
     auto out_msg = web::websockets::client::websocket_outgoing_message();
     out_msg.set_utf8_message(msg);
     client.send(out_msg).get();
@@ -77,11 +77,11 @@ struct _websocket {
 };
 typedef std::shared_ptr<_websocket> WebSocket;
 
-inline auto make_websocket(const str& address) -> WebSocket {
+inline auto make_websocket(const std::string& address) -> WebSocket {
   return make_shared<_websocket>(address);
 }
 
-inline auto make_json(const str& data) -> rapidjson::Document {
+inline auto make_json(const std::string& data) -> rapidjson::Document {
   auto doc = rapidjson::Document();
   doc.Parse(data.c_str());
   return doc;

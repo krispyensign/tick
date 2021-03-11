@@ -1,17 +1,16 @@
-#include <atomic>
 #define BACKWARD_HAS_LIBUNWIND 1
 #include "deps.hpp"
 #include "ticker_service.hpp"
 
-using std::cout, std::launch, std::exception, args::HelpFlag, args::ArgumentParser, args::ValueFlag,
-  args::Help, ticker_service::tick_service, std::atomic_bool;
+using std::cout, std::launch, args::HelpFlag, args::ArgumentParser, args::ValueFlag, args::Help,
+  ticker_service::tick_service, std::atomic_bool;
 
 // setup stacktracing
 backward::SignalHandling sh;
 
 // handlers for graceful shutdown on ctrl-c
 function<void(int)> shutdown_handler;
-def signal_handler(int signal) ->void { shutdown_handler(signal); }
+def signal_handler(int signal) -> void { shutdown_handler(signal); }
 
 def main(i16 argc, c_str argv[]) -> i16 {
   // setup the parser
@@ -50,9 +49,9 @@ def main(i16 argc, c_str argv[]) -> i16 {
   try {
     logger::info("using exchange [{}] and publisher binding [{}] ", name.Get(), zbind.Get());
     async(launch::async, tick_service, exid.value(), zbind.Get(), cref(cancellation_token)).get();
-  } catch (const exception& e) {
+  } catch (Exception e) {
     logger::error(e.what());
-    throw;
+    return 1;
   }
   return 0;
 }

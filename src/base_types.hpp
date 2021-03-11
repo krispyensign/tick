@@ -1,6 +1,7 @@
 #ifndef base_types_hpp
 #define base_types_hpp
 
+#include <exception>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -21,6 +22,7 @@ const auto null = std::nullopt;
 using error = std::runtime_error;
 using AtomicBool = const std::atomic_bool&;
 using String = const str&;
+using Exception = const std::exception&;
 
 template <typename T>
 using vec = std::vector<T, std::allocator<T>>;

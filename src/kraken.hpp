@@ -1,6 +1,7 @@
 #ifndef kraken_hpp
 #define kraken_hpp
 #include "deps.hpp"
+#include "types.hpp"
 
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
   rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
@@ -42,7 +43,7 @@ let get_pairs_list = []() -> vec<str> {
 
   // if not OK then return an error
   if (response.status_code() != status_codes::OK)
-    throw error("returned: " + std::to_string(response.status_code()));
+    throw error(format("returned: {}", response.status_code()));
 
   // extract and parse
   let response_text = response.extract_string().get();
