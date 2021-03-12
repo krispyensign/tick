@@ -1,13 +1,11 @@
-#ifndef kraken_hpp
-#define kraken_hpp
-#include "deps.hpp"
-#include "types.hpp"
+#pragma once
+#include "tick.hpp"
+
+namespace kraken_exchange {
 
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
   rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
   ranges::views::transform, ranges::to, ranges::all_of;
-
-namespace kraken_exchange {
 
 let ws_uri = "wss://ws.kraken.com";
 let api_url = "https://api.kraken.com";
@@ -56,8 +54,7 @@ let get_pairs_list = []() -> vec<str> {
 
   // aggregate the wsnames of each pair to a vector of strings
   return obj | filter([](val pair) { return pair.value.HasMember("wsname"); })
-         | transform([](val pair) { return pair.value["wsname"].GetString(); })
-         | to<vec<str>>;
+         | transform([](val pair) { return pair.value["wsname"].GetString(); }) | to<vec<str>>;
 };
 
 let parse_event = [](String msg_data) -> optional<pair_price_update> {
@@ -87,4 +84,3 @@ let parse_event = [](String msg_data) -> optional<pair_price_update> {
   };
 };
 }  // namespace kraken_exchange
-#endif

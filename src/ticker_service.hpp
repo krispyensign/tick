@@ -1,15 +1,13 @@
-#ifndef ticker_service_hpp
-#define ticker_service_hpp
-#include "deps.hpp"
+#pragma once
 #include "kraken_tick.hpp"
 
-namespace this_thread = std::this_thread;
-namespace logger = spdlog;
+namespace ticker_service {
 
 using namespace std::chrono_literals;
+namespace this_thread = std::this_thread;
+namespace logger = spdlog;
 using web::uri;
 
-namespace ticker_service {
 let select_exchange = [](exchange_name ex) -> exchange_interface {
   switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); }
 };
@@ -70,5 +68,3 @@ let tick_service = [](exchange_name ex_name, String zbind, AtomicBool is_running
   logger::info("shutdown complete");
 };
 }  // namespace ticker_service
-
-#endif

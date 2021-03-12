@@ -1,5 +1,3 @@
-#define BACKWARD_HAS_LIBUNWIND 1
-#include "deps.hpp"
 #include "ticker_service.hpp"
 
 using std::cout, std::launch, args::HelpFlag, args::ArgumentParser, args::ValueFlag, args::Help,

@@ -1,6 +1,6 @@
-#ifndef deps_hpp
-#define deps_hpp
+#pragma once
 #define FMT_HEADER_ONLY 1
+#define BACKWARD_HAS_LIBUNWIND 1
 #pragma region ranges
 #include <range/v3/algorithm/all_of.hpp>
 #include <range/v3/range/conversion.hpp>
@@ -18,55 +18,51 @@
 #include <args.hxx>
 #include <backward.hpp>
 #include <future>
+#include <memory>
 #include <msgpack.hpp>
 #include <zmq.hpp>
 
-typedef std::shared_ptr<zmq::context_t> Context;
+#include "base_types.hpp"
 
-struct _publisher {
- private:
-  zmq::socket_t sock;
+using Context = std::shared_ptr<zmq::context_t>;
+using WebSocketIncomingMessage = const web::websockets::client::websocket_incoming_message&;
 
- public:
-  _publisher(Context ctx, const std::string& bind_addr) {
-    sock = zmq::socket_t(*ctx, zmq::socket_type::pub);
-    sock.bind(bind_addr);
-  }
-  ~_publisher() { sock.close(); }
-  auto send(const std::string& msg) -> void {
-    sock.send(zmq::message_t(msg), zmq::send_flags::none);
-  };
-};
-typedef std::shared_ptr<_publisher> Publisher;
-
-inline auto make_publisher(Context ctx, const std::string& bind_addr) -> Publisher {
-  return std::make_shared<_publisher>(ctx, bind_addr);
-}
-
-inline auto make_context(int threads) -> Context {
-  return std::make_shared<zmq::context_t>(threads);
-}
-
+namespace deps {
+using std::shared_ptr, zmq::context_t, zmq::socket_t, zmq::socket_type, zmq::send_flags,
+  std::make_shared, zmq::message_t, std::stringstream, msgpack::pack,
+  web::websockets::client::websocket_callback_client, rapidjson::Document,
+  web::websockets::client::websocket_outgoing_message;
 struct Encoder {
-  static auto encode(const std::string& enc) -> std::string {
+  static auto encode(String enc) -> str {
     auto buf = std::stringstream();
     msgpack::pack(buf, enc);
     return buf.str();
   }
 };
 
-using WebSocketIncomingMessage = const web::websockets::client::websocket_incoming_message&;
-
-struct _websocket {
+struct publisher {
  private:
-  web::websockets::client::websocket_callback_client client;
+  socket_t sock;
 
  public:
-  _websocket(const std::string& address) { client.connect(address).get(); }
-  ~_websocket() { client.close(); }
+  publisher(Context ctx, String bind_addr) {
+    sock = socket_t(*ctx, socket_type::pub);
+    sock.bind(bind_addr);
+  }
+  ~publisher() { sock.close(); }
+  auto send(String msg) -> void { sock.send(message_t(msg), send_flags::none); };
+};
 
-  auto send(const std::string& msg) -> void {
-    auto out_msg = web::websockets::client::websocket_outgoing_message();
+struct websocket {
+ private:
+  websocket_callback_client client;
+
+ public:
+  websocket(String address) { client.connect(address).get(); }
+  ~websocket() { client.close(); }
+
+  auto send(String msg) -> void {
+    auto out_msg = websocket_outgoing_message();
     out_msg.set_utf8_message(msg);
     client.send(out_msg).get();
   }
@@ -75,15 +71,25 @@ struct _websocket {
     client.set_message_handler(t);
   }
 };
-typedef std::shared_ptr<_websocket> WebSocket;
+}  // namespace deps
 
-inline auto make_websocket(const std::string& address) -> WebSocket {
-  return make_shared<_websocket>(address);
+using Publisher = std::shared_ptr<deps::publisher>;
+using WebSocket = std::shared_ptr<deps::websocket>;
+using Encoder = deps::Encoder;
+
+inline auto make_publisher(Context ctx, String bind_addr) -> Publisher {
+  return make_shared<deps::publisher>(ctx, bind_addr);
 }
 
-inline auto make_json(const std::string& data) -> rapidjson::Document {
+inline auto make_context(int threads) -> Context {
+  return std::make_shared<zmq::context_t>(threads);
+}
+inline auto make_websocket(String address) -> WebSocket {
+  return make_shared<deps::websocket>(address);
+}
+
+inline auto make_json(String data) -> rapidjson::Document {
   auto doc = rapidjson::Document();
   doc.Parse(data.c_str());
   return doc;
 }
-#endif
