@@ -9,6 +9,7 @@
 #include <thread>
 #include <chrono>
 #include <atomic>
+#include <functional>
 
 using i16 = int;
 using u16 = unsigned int;
