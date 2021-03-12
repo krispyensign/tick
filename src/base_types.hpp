@@ -8,16 +8,16 @@
 #include <variant>
 #include <vector>
 
-typedef int i16;
-typedef unsigned int u16;
-typedef long i32;
-typedef unsigned long u32;
-typedef long long i64;
-typedef unsigned long long u64;
-typedef float f32;
-typedef double f64;
-typedef char *c_str;
-typedef std::string str;
+using i16 = int;
+using u16 = unsigned int;
+using i32 = long;
+using u32 = unsigned long;
+using i64 = long long;
+using u64 = unsigned long long;
+using f32 = float;
+using f64 = double;
+using c_str = char *;
+using str = std::string;
 const auto null = std::nullopt;
 using error = std::runtime_error;
 using AtomicBool = const std::atomic_bool&;

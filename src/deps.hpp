@@ -47,7 +47,7 @@ struct publisher {
 
  public:
   publisher() = delete;
-  publisher(Context ctx, String bind_addr) {
+  publisher(const Context& ctx, String bind_addr) {
     sock = socket_t(*ctx, socket_type::pub);
     sock.bind(bind_addr);
   }

@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <optional>
+
 #include "kraken_tick.hpp"
 
 namespace ticker_service {
@@ -10,6 +11,9 @@ namespace this_thread = std::this_thread;
 namespace logger = spdlog;
 using web::uri, std::optional, std::function;
 
+constexpr const auto default_timer = 100ms;
+
+namespace {
 let select_exchange = [](exchange_name ex) -> exchange_interface {
   switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); }
 };
@@ -25,19 +29,22 @@ let ws_handler = [](AtomicBool is_running,
         is_healthy = true;
         logger::info("**ticker healthy**");
         publisher->send(Encoder::encode(msg));
-      } else if (update != null and is_healthy)
+      } else if (update != null and is_healthy) {
         publisher->send(Encoder::encode(msg));
-      else
+      } else {
         logger::info(msg);
+      }
     }
   };
 };
+}  // namespace
 
 let tick_service = [](exchange_name ex_name, String zbind, AtomicBool is_running) -> void {
   // configure exchange and perform basic validation on the config
   let exi = select_exchange(ex_name);
-  if (not uri::validate(zbind) or uri(zbind).is_empty())
+  if (not uri::validate(zbind) or uri(zbind).is_empty()) {
     throw error("Invalid binding uri for config");
+  }
   logger::info("conf validated");
 
   // attempt to get the available pairs for websocket subscription
@@ -58,12 +65,14 @@ let tick_service = [](exchange_name ex_name, String zbind, AtomicBool is_running
   logger::info("callback setup. waiting for shutdown");
 
   // loop until ctrl-c or forever
-  while (is_running) this_thread::sleep_for(100ms);
+  while (is_running) {
+    this_thread::sleep_for(default_timer);
+  }
   logger::info("got shutdown signal");
 
   // stop the work vent first
   wsock->send(exi.create_tick_unsub_request());
-  this_thread::sleep_for(100ms);
+  this_thread::sleep_for(default_timer);
 
   // then stop the sink
   ctx->shutdown();
