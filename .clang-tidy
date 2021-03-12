@@ -33,7 +33,7 @@ CheckOptions:
   - key:             bugprone-dynamic-static-initializers.HeaderFileExtensions
     value:           ';h;hh;hpp;hxx'
   - key:             bugprone-exception-escape.FunctionsThatShouldNotThrow
-    value:           ''
+    value:           'false'
   - key:             bugprone-exception-escape.IgnoredExceptions
     value:           ''
   - key:             bugprone-misplaced-widening-cast.CheckImplicitCasts

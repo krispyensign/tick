@@ -1,15 +1,9 @@
 #pragma once
-#include <functional>
-#include <optional>
-
 #include "kraken_tick.hpp"
 
 namespace ticker_service {
 
-using namespace std::chrono_literals;
-namespace this_thread = std::this_thread;
-namespace logger = spdlog;
-using web::uri, std::optional, std::function;
+using web::uri;
 
 constexpr const auto default_timer = 100ms;
 

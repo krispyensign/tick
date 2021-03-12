@@ -27,6 +27,8 @@
 using Context = std::shared_ptr<zmq::context_t>;
 using WebSocketIncomingMessage = const web::websockets::client::websocket_incoming_message&;
 
+namespace logger = spdlog;
+
 namespace deps {
 using std::shared_ptr, zmq::context_t, zmq::socket_t, zmq::socket_type, zmq::send_flags,
   std::make_shared, zmq::message_t, std::stringstream, msgpack::pack,

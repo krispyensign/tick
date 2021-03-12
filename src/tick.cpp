@@ -1,8 +1,7 @@
-#include <functional>
 #include "ticker_service.hpp"
 
 using std::cout, std::launch, args::HelpFlag, args::ArgumentParser, args::ValueFlag, args::Help,
-  ticker_service::tick_service, std::atomic_bool, std::function;
+  ticker_service::tick_service, std::atomic_bool;
 namespace logger = spdlog;
 
 // setup stacktracing
