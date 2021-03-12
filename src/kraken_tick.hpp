@@ -1,11 +1,12 @@
 #pragma once
+#include <optional>
 #include "tick.hpp"
 
 namespace kraken_exchange {
 
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
   rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
-  ranges::views::transform, ranges::to, ranges::all_of;
+  ranges::views::transform, ranges::to, ranges::all_of, std::optional;
 
 let ws_uri = "wss://ws.kraken.com";
 let api_url = "https://api.kraken.com";

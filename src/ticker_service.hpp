@@ -1,4 +1,6 @@
 #pragma once
+#include <functional>
+#include <optional>
 #include "kraken_tick.hpp"
 
 namespace ticker_service {
@@ -6,7 +8,7 @@ namespace ticker_service {
 using namespace std::chrono_literals;
 namespace this_thread = std::this_thread;
 namespace logger = spdlog;
-using web::uri;
+using web::uri, std::optional, std::function;
 
 let select_exchange = [](exchange_name ex) -> exchange_interface {
   switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); }

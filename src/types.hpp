@@ -1,14 +1,7 @@
 #pragma once
 #include <msgpack.hpp>
+
 #include "base_types.hpp"
-
-using std::function;
-using std::optional;
-
-#define make_exchange(x)                   \
-  if (lookup == #x) return exchange_name { \
-      exchange_name::x                     \
-    }
 
 struct pair_price_update {
   str trade_name;
@@ -18,10 +11,10 @@ struct pair_price_update {
 };
 
 struct exchange_interface {
-  function<str(const vec<str>&)> create_tick_sub_request;
-  function<vec<str>(void)> get_pairs_list;
-  function<str(void)> create_tick_unsub_request;
-  function<optional<pair_price_update>(String)> parse_event;
+  std::function<str(const vec<str>&)> create_tick_sub_request;
+  std::function<vec<str>(void)> get_pairs_list;
+  std::function<str(void)> create_tick_unsub_request;
+  std::function<std::optional<pair_price_update>(String)> parse_event;
   const str ws_uri;
 };
 
@@ -40,7 +33,9 @@ struct exchange_name {
     kraken,
   } inner;
 
-  static auto as_enum(String lookup) -> optional<exchange_name> {
+  static auto as_enum(String lookup) -> std::optional<exchange_name> {
+#define make_exchange(x) \
+  if (lookup == #x) return exchange_name{exchange_name::x}
     make_exchange(kraken);
     return null;
   };
