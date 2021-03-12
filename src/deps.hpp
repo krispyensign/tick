@@ -33,6 +33,7 @@ using std::shared_ptr, zmq::context_t, zmq::socket_t, zmq::socket_type, zmq::sen
   web::websockets::client::websocket_callback_client, rapidjson::Document,
   web::websockets::client::websocket_outgoing_message;
 struct Encoder {
+  Encoder() = delete;
   static auto encode(String enc) -> str {
     auto buf = std::stringstream();
     msgpack::pack(buf, enc);
@@ -45,6 +46,7 @@ struct publisher {
   socket_t sock;
 
  public:
+  publisher() = delete;
   publisher(Context ctx, String bind_addr) {
     sock = socket_t(*ctx, socket_type::pub);
     sock.bind(bind_addr);
@@ -58,6 +60,7 @@ struct websocket {
   websocket_callback_client client;
 
  public:
+  websocket() = delete;
   websocket(String address) { client.connect(address).get(); }
   ~websocket() { client.close(); }
 
