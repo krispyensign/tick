@@ -2,17 +2,15 @@
 #include "tick.hpp"
 
 namespace kraken_exchange {
-
+namespace {
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
   rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
   ranges::views::transform, ranges::to, ranges::all_of;
-
-let ws_uri = "wss://ws.kraken.com";
-
-namespace {
 let api_url = "https://api.kraken.com";
 let assets_path = "/0/public/AssetPairs";
 }  // namespace
+
+let ws_uri = "wss://ws.kraken.com";
 
 let create_tick_unsub_request = []() -> str {
   return R"EOF(

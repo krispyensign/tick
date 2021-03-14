@@ -2,12 +2,10 @@
 #include "kraken_tick.hpp"
 
 namespace ticker_service {
-
+namespace {
 using web::uri;
-
 constexpr const auto default_timer = 100ms;
 
-namespace {
 let select_exchange = [](exchange_name ex) -> exchange_interface {
   switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); }
 };
