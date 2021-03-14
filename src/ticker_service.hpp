@@ -3,7 +3,6 @@
 
 namespace ticker_service {
 namespace {
-using web::uri;
 constexpr const auto default_timer = 100ms;
 
 let select_exchange = [](exchange_name ex) -> exchange_interface {
@@ -32,14 +31,8 @@ let ws_handler = [](AtomicBool is_running,
 }  // namespace
 
 let tick_service = [](exchange_name ex_name, String zbind, AtomicBool is_running) -> void {
-  // configure exchange and perform basic validation on the config
-  let exi = select_exchange(ex_name);
-  if (not uri::validate(zbind) or uri(zbind).is_empty()) {
-    throw error("Invalid binding uri for config");
-  }
-  logger::info("conf validated");
-
   // attempt to get the available pairs for websocket subscription
+  let exi = select_exchange(ex_name);
   let pair_result = exi.get_pairs_list();
   logger::info("got pairs");
 

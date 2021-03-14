@@ -1,7 +1,7 @@
 #include "ticker_service.hpp"
 
 using std::cout, std::launch, args::HelpFlag, args::ArgumentParser, args::ValueFlag, args::Help,
-  ticker_service::tick_service, std::atomic_bool;
+  ticker_service::tick_service, std::atomic_bool, web::uri;
 namespace logger = spdlog;
 
 // setup stacktracing
@@ -33,6 +33,12 @@ def main(i16 argc, c_str argv[]) -> i16 {
   if (exid == null) {
     logger::error("Unsupported exchange: {}", name.Get());
     cout << parser;
+    return 1;
+  }
+
+  // check if URI is parseable
+  if (not uri::validate(zbind.Get()) or uri(zbind.Get()).is_empty()) {
+    logger::error("Invalid binding uri for publisher");
     return 1;
   }
 
