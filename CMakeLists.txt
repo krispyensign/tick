@@ -33,7 +33,7 @@ add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra 
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp")
 add_executable(tick ${TICK_SOURCE_FILES})
-target_include_directories(tick PUBLIC src/third_party/ ${PC_LIBZMQ_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR} ${CPPRESTSDK_INCLUDE_DIR})
+target_include_directories(tick PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/ ${PC_LIBZMQ_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR} ${CPPRESTSDK_INCLUDE_DIR})
 
 ################################################################################
 ## Link
