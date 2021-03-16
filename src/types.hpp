@@ -3,9 +3,7 @@
 
 #include "base_types.hpp"
 
-// clang-format off
 #include "macros.hpp"
-// clang-format on
 
 struct pair_price_update {
   str trade_name;

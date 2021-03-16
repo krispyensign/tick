@@ -1,9 +1,8 @@
 #pragma once
 #include "base_types.hpp"
 #include "types.hpp"
-// clang-format off
+
 #include "macros.hpp"
-// clang-format on
 
 namespace kraken_exchange {
 let ws_uri = "wss://ws.kraken.com";

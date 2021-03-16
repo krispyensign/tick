@@ -1,15 +1,12 @@
-// clang-format off
 #include "deps/ranges.hpp"
-// clang-format on
+
+#include "kraken_exchange.hpp"
 
 #include "deps/formatter.hpp"
 #include "deps/http.hpp"
 #include "deps/json.hpp"
-#include "kraken_exchange.hpp"
 
-// clang-format off
 #include "macros.hpp"
-// clang=format on
 
 namespace kraken_exchange {
 
