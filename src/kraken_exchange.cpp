@@ -22,7 +22,7 @@ def create_tick_unsub_request() -> str {
       }
     }
   )EOF";
-};
+}
 
 def create_tick_sub_request(const vec<str>& pairs) -> str {
   return format(R"EOF(
@@ -35,7 +35,7 @@ def create_tick_sub_request(const vec<str>& pairs) -> str {
     }}
   )EOF",
                 join(pairs, "\",\""));
-};
+}
 
 def get_pairs_list() -> vec<str> {
   // make the call and get a response back
@@ -59,7 +59,7 @@ def get_pairs_list() -> vec<str> {
   // aggregate the wsnames of each pair to a vector of strings
   return obj | filter([](val pair) { return pair.value.HasMember("wsname"); })
          | transform([](val pair) { return pair.value["wsname"].GetString(); }) | to<vec<str>>;
-};
+}
 
 def parse_tick(String msg_data) -> optional<pair_price_update> {
   // validate the event parsed and there were not errors on the message itself
@@ -92,5 +92,5 @@ def parse_tick(String msg_data) -> optional<pair_price_update> {
     .ask = atof(payload["a"][0].GetString()),
     .bid = atof(payload["b"][0].GetString()),
   };
-};
+}
 }  // namespace kraken_exchange

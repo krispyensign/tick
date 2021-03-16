@@ -31,4 +31,4 @@ def orders_service(
   // then stop the sink
   ctx->shutdown();
   logger::info("shutdown complete");
-};
+}

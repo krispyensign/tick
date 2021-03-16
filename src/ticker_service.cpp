@@ -14,7 +14,7 @@ constexpr const auto default_timer = 100ms;
 
 def select_exchange(exchange_name ex) -> exchange_interface {
   switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); };
-};
+}
 
 def ws_handler(
   AtomicBool is_running,
@@ -35,7 +35,7 @@ def ws_handler(
       }
     }
   };
-};
+}
 
 def tick_service(
   exchange_name ex_name,
@@ -73,5 +73,5 @@ def tick_service(
   // then stop the sink
   ctx->shutdown();
   logger::info("shutdown complete");
-};
+}
 }  // namespace ticker_service
