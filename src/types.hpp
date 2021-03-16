@@ -11,10 +11,10 @@ struct pair_price_update {
 };
 
 struct exchange_interface {
-  std::function<str(const vec<str>&)> create_tick_sub_request;
-  std::function<vec<str>(void)> get_pairs_list;
-  std::function<str(void)> create_tick_unsub_request;
-  std::function<std::optional<pair_price_update>(String)> parse_event;
+  function<str(const vec<str>&)> create_tick_sub_request;
+  function<vec<str>(void)> get_pairs_list;
+  function<str(void)> create_tick_unsub_request;
+  function<optional<pair_price_update>(String)> parse_event;
   const str ws_uri;
 };
 
@@ -28,15 +28,18 @@ struct exchange_interface {
       x##_exchange::ws_uri,                    \
     };
 
+#define MAKE_EXCHANGE(x)                   \
+  if (lookup == #x) return exchange_name { \
+      exchange_name::x                     \
+    }
+
 struct exchange_name {
   enum inner {
     kraken,
   } inner;
 
-  static auto as_enum(String lookup) -> std::optional<exchange_name> {
-#define make_exchange(x) \
-  if (lookup == #x) return exchange_name{exchange_name::x}
-    make_exchange(kraken);
+  static auto as_enum(String lookup) -> optional<exchange_name> {
+    MAKE_EXCHANGE(kraken);
     return null;
   };
 };
