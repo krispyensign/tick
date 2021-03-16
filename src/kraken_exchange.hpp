@@ -12,6 +12,6 @@ let assets_path = "/0/public/AssetPairs";
 def create_tick_unsub_request()->str;
 def create_tick_sub_request(const vec<str>& pairs)->str;
 def get_pairs_list()->vec<str>;
-def parse_event(String msg_data)->optional<pair_price_update>;
+def parse_tick(String msg_data)->optional<pair_price_update>;
 }  // namespace kraken_exchange
 #include "unmacros.hpp"

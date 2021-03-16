@@ -24,7 +24,7 @@ struct exchange_interface {
       x##_exchange::create_tick_sub_request,   \
       x##_exchange::get_pairs_list,            \
       x##_exchange::create_tick_unsub_request, \
-      x##_exchange::parse_event,               \
+      x##_exchange::parse_tick,                \
       x##_exchange::ws_uri,                    \
     };
 
