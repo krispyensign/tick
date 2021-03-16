@@ -30,8 +30,7 @@ def create_tick_sub_request(const vec<str>& pairs) -> str {
         "name": "ticker"
       }}
     }}
-  )EOF",
-                join(pairs, "\",\""));
+  )EOF", join(pairs, "\",\""));
 }
 
 def get_pairs_list() -> vec<str> {

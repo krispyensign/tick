@@ -9,8 +9,12 @@
 constexpr const auto default_timer = 100ms;
 
 def orders_service(
-  exchange_name ex_name, AtomicBool is_running, String ws_uri, String work_bind, String pub_bind)
-  ->void {
+  exchange_name ex_name,
+  AtomicBool is_running,
+  String ws_uri,
+  String work_bind,
+  String pub_bind
+) -> void {
   let ctx = make_context(1);
   let worker = make_pull(ctx, work_bind);
   let publisher = make_publisher(ctx, pub_bind);

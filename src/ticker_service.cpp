@@ -10,14 +10,15 @@
 namespace ticker_service {
 constexpr const auto default_timer = 100ms;
 
-def select_exchange(exchange_name ex)->exchange_interface {
+def select_exchange(exchange_name ex) -> exchange_interface {
   switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); };
 }
 
-def ws_handler(AtomicBool is_running,
-               Publisher publisher,
-               const function<optional<pair_price_update>(String)>& parse_event)
-  ->function<void(WebSocketIncomingMessage data)> {
+def ws_handler(
+  AtomicBool is_running,
+  Publisher publisher,
+  const function<optional<pair_price_update>(String)>& parse_event
+) -> function<void(WebSocketIncomingMessage data)> {
   return [&, is_healthy = false](WebSocketIncomingMessage data) mutable {
     if (is_running) {
       let msg = data.extract_string().get();
@@ -34,7 +35,7 @@ def ws_handler(AtomicBool is_running,
   };
 }
 
-def tick_service(exchange_name ex_name, String zbind, AtomicBool is_running)->void {
+def tick_service(exchange_name ex_name, String zbind, AtomicBool is_running) -> void {
   // attempt to get the available pairs for websocket subscription
   let exi = select_exchange(ex_name);
   let pair_result = exi.get_pairs_list();
