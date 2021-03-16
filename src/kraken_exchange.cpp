@@ -1,11 +1,16 @@
+#pragma region ranges
+#include "deps/ranges.hpp"
+#pragma endregion
+
+#include "deps/formatter.hpp"
+#include "deps/http.hpp"
+#include "deps/json.hpp"
 #include "kraken_exchange.hpp"
+#include "macros.hpp"
 
 namespace kraken_exchange {
-using web::http::client::http_client, web::http::methods, web::http::status_codes,
-  rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
-  ranges::views::transform, ranges::to, ranges::all_of;
 
-def create_tick_unsub_request()->str {
+def create_tick_unsub_request() -> str {
   return R"EOF(
     {
       "event": "unsubscribe",
@@ -16,7 +21,7 @@ def create_tick_unsub_request()->str {
   )EOF";
 };
 
-def create_tick_sub_request(const vec<str>& pairs)->str {
+def create_tick_sub_request(const vec<str>& pairs) -> str {
   return format(R"EOF(
     {{
       "event": "subscribe",
@@ -29,7 +34,7 @@ def create_tick_sub_request(const vec<str>& pairs)->str {
                 join(pairs, "\",\""));
 };
 
-def get_pairs_list()->vec<str> {
+def get_pairs_list() -> vec<str> {
   // make the call and get a response back
   let response = http_client(api_url).request(methods::GET, assets_path).get();
 
@@ -53,7 +58,7 @@ def get_pairs_list()->vec<str> {
          | transform([](val pair) { return pair.value["wsname"].GetString(); }) | to<vec<str>>;
 };
 
-def parse_event(String msg_data)->optional<pair_price_update> {
+def parse_event(String msg_data) -> optional<pair_price_update> {
   // validate the event parsed and there were not errors on the message itself
   let msg = make_json(msg_data);
   if (msg.HasParseError()) {

@@ -1,11 +1,4 @@
-#include "ticker_service.hpp"
-
-using std::cout, std::launch, args::HelpFlag, args::ArgumentParser, args::ValueFlag, args::Help,
-  ticker_service::tick_service, std::atomic_bool, web::uri;
-namespace logger = spdlog;
-
-// setup stacktracing
-backward::SignalHandling sh;
+#include "tick.hpp"
 
 // handlers for graceful shutdown on ctrl-c
 function<void(int)> shutdown_handler;

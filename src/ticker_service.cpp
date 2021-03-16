@@ -1,5 +1,10 @@
-// #include "ticker_service.hpp"
 #include "ticker_service.hpp"
+#include "deps/zero.hpp"
+#include "deps/websocket.hpp"
+#include "deps/logger.hpp"
+#include "deps/encdec.hpp"
+
+#include "macros.hpp"
 
 namespace ticker_service {
 constexpr const auto default_timer = 100ms;

@@ -1,13 +1,15 @@
-#undef let
-#undef mutant
-#undef val
-#undef def
+#pragma once
+#include <future>
 
-#include "base_types.hpp"
-#include "deps.hpp"
-#include "types.hpp"
+#include "deps/args.hpp"
+#include "deps/backward.hpp"
+#include "deps/http.hpp"
+#include "deps/logger.hpp"
+#include "ticker_service.hpp"
 
-#define let const auto
-#define mutant auto
-#define def auto
-#define val const auto&
+#include "macros.hpp"
+
+using std::cout, std::launch, ticker_service::tick_service, std::atomic_bool;
+
+// setup stacktracing
+backward::SignalHandling sh;
