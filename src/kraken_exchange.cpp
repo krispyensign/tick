@@ -1,6 +1,6 @@
-#pragma region ranges
+//clang-format off
 #include "deps/ranges.hpp"
-#pragma endregion
+//clang-format on
 
 #include "deps/formatter.hpp"
 #include "deps/http.hpp"
@@ -10,7 +10,7 @@
 
 namespace kraken_exchange {
 
-def create_tick_unsub_request() -> str {
+def create_tick_unsub_request()->str {
   return R"EOF(
     {
       "event": "unsubscribe",
@@ -21,7 +21,7 @@ def create_tick_unsub_request() -> str {
   )EOF";
 };
 
-def create_tick_sub_request(const vec<str>& pairs) -> str {
+def create_tick_sub_request(const vec<str>& pairs)->str {
   return format(R"EOF(
     {{
       "event": "subscribe",
@@ -34,7 +34,7 @@ def create_tick_sub_request(const vec<str>& pairs) -> str {
                 join(pairs, "\",\""));
 };
 
-def get_pairs_list() -> vec<str> {
+def get_pairs_list()->vec<str> {
   // make the call and get a response back
   let response = http_client(api_url).request(methods::GET, assets_path).get();
 
@@ -58,7 +58,7 @@ def get_pairs_list() -> vec<str> {
          | transform([](val pair) { return pair.value["wsname"].GetString(); }) | to<vec<str>>;
 };
 
-def parse_event(String msg_data) -> optional<pair_price_update> {
+def parse_event(String msg_data)->optional<pair_price_update> {
   // validate the event parsed and there were not errors on the message itself
   let msg = make_json(msg_data);
   if (msg.HasParseError()) {

@@ -1,9 +1,11 @@
 #include "base_types.hpp"
-#include "types.hpp"
-#include "deps/zero.hpp"
-#include "deps/websocket.hpp"
 #include "deps/logger.hpp"
+#include "deps/websocket.hpp"
+#include "deps/zero.hpp"
+#include "types.hpp"
+// clang-format off
 #include "macros.hpp"
+// clang-format on
 
 constexpr const auto default_timer = 100ms;
 
