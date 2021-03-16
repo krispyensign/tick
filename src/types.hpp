@@ -3,6 +3,10 @@
 
 #include "base_types.hpp"
 
+// clang-format off
+#include "macros.hpp"
+// clang-format on
+
 struct pair_price_update {
   str trade_name;
   double ask;
@@ -38,8 +42,9 @@ struct exchange_name {
     kraken,
   } inner;
 
-  static auto as_enum(String lookup) -> optional<exchange_name> {
+  static def as_enum(String lookup) -> optional<exchange_name> {
     MAKE_EXCHANGE(kraken);
     return null;
   };
 };
+#include "unmacros.hpp"
