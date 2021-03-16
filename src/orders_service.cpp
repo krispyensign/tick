@@ -6,7 +6,7 @@
 
 #include "macros.hpp"
 
-constexpr const auto default_timer = 100ms;
+constexpr let default_timer = 100ms;
 
 def orders_service(
   exchange_name ex_name,

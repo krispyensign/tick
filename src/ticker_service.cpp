@@ -8,10 +8,14 @@
 #include "macros.hpp"
 
 namespace ticker_service {
-constexpr const auto default_timer = 100ms;
+constexpr let default_timer = 100ms;
 
 def select_exchange(exchange_name ex) -> exchange_interface {
-  switch (ex.inner) { EXCHANGE_INF_CASE(kraken) default : throw error("unrecognized exchange"); };
+  switch (ex.inner) {
+    EXCHANGE_INF_CASE(kraken)
+    default:
+      throw error("unrecognized exchange");
+  };
 }
 
 def ws_handler(
@@ -35,7 +39,11 @@ def ws_handler(
   };
 }
 
-def tick_service(exchange_name ex_name, String zbind, AtomicBool is_running) -> void {
+def tick_service(
+  exchange_name ex_name,
+  String zbind,
+  AtomicBool is_running
+) -> void {
   // attempt to get the available pairs for websocket subscription
   let exi = select_exchange(ex_name);
   let pair_result = exi.get_pairs_list();
@@ -51,7 +59,8 @@ def tick_service(exchange_name ex_name, String zbind, AtomicBool is_running) -> 
   let subscription = exi.create_tick_sub_request(pair_result);
   wsock->send(subscription);
   logger::info("subscription sent: {}", subscription);
-  wsock->set_message_handler(ws_handler(is_running, publisher, exi.parse_event));
+  wsock->set_message_handler(
+    ws_handler(is_running, publisher, exi.parse_event));
   logger::info("callback setup. waiting for shutdown");
 
   // loop until ctrl-c or forever
