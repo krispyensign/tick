@@ -1,15 +1,15 @@
 #pragma once
 
+#include <atomic>
+#include <chrono>
 #include <exception>
+#include <functional>
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <thread>
 #include <variant>
 #include <vector>
-#include <thread>
-#include <chrono>
-#include <atomic>
-#include <functional>
 
 using i16 = int;
 using u16 = unsigned int;
@@ -23,9 +23,9 @@ using c_str = char *;
 using str = std::string;
 const auto null = std::nullopt;
 using error = std::runtime_error;
-using AtomicBool = const std::atomic_bool&;
-using String = const str&;
-using Exception = const std::exception&;
+using AtomicBool = const std::atomic_bool &;
+using String = const str &;
+using Exception = const std::exception &;
 using std::optional, std::function;
 using namespace std::chrono_literals;
 namespace this_thread = std::this_thread;

@@ -1,19 +1,11 @@
-#pragma once
-#include "tick.hpp"
+#include "kraken_exchange.hpp"
 
 namespace kraken_exchange {
-namespace {
 using web::http::client::http_client, web::http::methods, web::http::status_codes,
   rapidjson::Document, rapidjson::Value, fmt::format, fmt::join, ranges::views::filter,
   ranges::views::transform, ranges::to, ranges::all_of;
 
-let api_url = "https://api.kraken.com";
-let assets_path = "/0/public/AssetPairs";
-}  // namespace
-
-let ws_uri = "wss://ws.kraken.com";
-
-let create_tick_unsub_request = []() -> str {
+def create_tick_unsub_request()->str {
   return R"EOF(
     {
       "event": "unsubscribe",
@@ -24,7 +16,7 @@ let create_tick_unsub_request = []() -> str {
   )EOF";
 };
 
-let create_tick_sub_request = [](const vec<str>& pairs) -> str {
+def create_tick_sub_request(const vec<str>& pairs)->str {
   return format(R"EOF(
     {{
       "event": "subscribe",
@@ -37,7 +29,7 @@ let create_tick_sub_request = [](const vec<str>& pairs) -> str {
                 join(pairs, "\",\""));
 };
 
-let get_pairs_list = []() -> vec<str> {
+def get_pairs_list()->vec<str> {
   // make the call and get a response back
   let response = http_client(api_url).request(methods::GET, assets_path).get();
 
@@ -61,7 +53,7 @@ let get_pairs_list = []() -> vec<str> {
          | transform([](val pair) { return pair.value["wsname"].GetString(); }) | to<vec<str>>;
 };
 
-let parse_event = [](String msg_data) -> optional<pair_price_update> {
+def parse_event(String msg_data)->optional<pair_price_update> {
   // validate the event parsed and there were not errors on the message itself
   let msg = make_json(msg_data);
   if (msg.HasParseError()) {
@@ -81,7 +73,8 @@ let parse_event = [](String msg_data) -> optional<pair_price_update> {
   // validate the payload is a tick object
   let payload = publication[1].GetObject();
   let required_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
-  if (not all_of(required_members, [&payload](val mem) { return payload.HasMember(mem); })) {
+  if (not all_of(required_members,
+                 [&payload](const auto& mem) { return payload.HasMember(mem); })) {
     return null;
   }
 

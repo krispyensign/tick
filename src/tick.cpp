@@ -9,9 +9,9 @@ backward::SignalHandling sh;
 
 // handlers for graceful shutdown on ctrl-c
 function<void(int)> shutdown_handler;
-def signal_handler(int signal) -> void { shutdown_handler(signal); }
+def signal_handler(int signal)->void { shutdown_handler(signal); }
 
-def main(i16 argc, c_str argv[]) -> i16 {
+def main(i16 argc, c_str argv[])->i16 {
   // setup the parser
   mutant parser = ArgumentParser("Websocket and ZeroMQ tick replicator");
   let help = HelpFlag(parser, "help", "Display this help menu", {'h', "help"});
