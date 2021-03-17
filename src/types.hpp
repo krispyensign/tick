@@ -13,7 +13,7 @@ struct pair_price_update {
 };
 
 struct exchange_interface {
-  function<str(const vec<str>&)> create_tick_sub_request;
+  function<str(Vector<str>)> create_tick_sub_request;
   function<vec<str>(void)> get_pairs_list;
   function<str(void)> create_tick_unsub_request;
   function<optional<pair_price_update>(String)> parse_event;

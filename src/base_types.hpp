@@ -33,5 +33,12 @@ namespace this_thread = std::this_thread;
 template <typename T>
 using vec = std::vector<T, std::allocator<T>>;
 
+
 template <typename... Ts>
 using var = std::variant<Ts...>;
+
+template<typename T>
+using Function = const function<T>&;
+
+template<typename T>
+using Vector = const vec<T>&;

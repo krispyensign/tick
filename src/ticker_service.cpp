@@ -21,7 +21,7 @@ def select_exchange(exchange_name ex) -> exchange_interface {
 def ws_handler(
   AtomicBool is_running,
   Publisher publisher,
-  const function<optional<pair_price_update>(String)>& parse_event
+  Function<optional<pair_price_update>(String)> parse_event
 ) -> function<void(WebSocketIncomingMessage data)> {
   return [&, is_healthy = false](WebSocketIncomingMessage data) mutable {
     if (is_running) {
