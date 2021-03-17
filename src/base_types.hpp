@@ -29,6 +29,7 @@ using Exception = const std::exception &;
 using std::optional, std::function;
 using namespace std::chrono_literals;
 namespace this_thread = std::this_thread;
+using currency = long double;
 
 template <typename T>
 using vec = std::vector<T, std::allocator<T>>;
