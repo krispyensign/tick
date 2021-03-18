@@ -7,35 +7,46 @@
 #include "deps/json.hpp"
 
 #include "macros.hpp"
-#include "rapidjson/stringbuffer.h"
 
 namespace kraken_exchange {
 
-def serialize_add_order(add_order ao) -> str {
+#define docset(x) \
+  if(let opt = optional(x); opt != null)\
+    doc[#x] = opt.value()
+#define docsetspec(x, y) \
+  if(let opt = optional(y); opt != null)\
+    doc[#x] = opt.value()
+
+def add_order::serialize() -> str {
+  // populate the document
+  mutant doc = Document();
+  doc.SetObject();
+  docset(event);
+  docset(token);
+  docset(event);
+  docset(token);
+  docset(reqid);
+  docset(orderType);
+  docset(type);
+  docset(pair);
+  docset(price);
+  docset(price2);
+  docset(volume);
+  docset(leverage);
+  docset(oflags);
+  docset(starttm);
+  docset(expiretm);
+  docset(userref);
+  docset(validate);
+  docsetspec(close[ordertype], close_ordertype);
+  docsetspec(close[price], close_price);
+  docsetspec(close[price2], close_price2);
+  docset(trading_agreement);
+
+  // setup the serialization context
   mutant sb = StringBuffer();
-  mutant w = PrettyWriter(sb);
-  w.StartObject();
-
-  S_STRING(w, ao.event)
-  S_STRING(w, ao.token)
-  S_OPTINT(w, ao.reqid)
-  S_STRING(w, ao.orderType)
-  S_STRING(w, ao.type)
-  S_STRING(w, ao.pair)
-  S_DOUBLE(w, ao.price)
-  S_OPTDOU(w, ao.price2)
-  S_STRING(w, ao.volume)
-  S_OPTINT(w, ao.leverage)
-  S_OPTSTR(w, ao.oflags)
-  S_OPTINT(w, ao.starttm)
-  S_OPTINT(w, ao.expiretm)
-  S_OPTSTR(w, ao.userref)
-  S_OPTSTR(w, ao.validate)
-  S_OPTSTR2(w, ao.close_ordertype, "close[ordertype]")
-  S_OPTDOU2(w, ao.close_price, "close[price]")
-  S_OPTDOU2(w, ao.close_price2, "close[price2]")
-
-  w.EndObject();
+  mutant w = Writer(sb);
+  doc.Accept(w);
   return sb.GetString();
 }
 
