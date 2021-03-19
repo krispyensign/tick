@@ -36,7 +36,7 @@ struct add_order {
   optional<currency> close_price;
   optional<currency> close_price2;
   optional<str> trading_agreement;
-  def serialize() -> str;
+  [[nodiscard]] def serialize() const -> str;
   MSGPACK_DEFINE(event, token, reqid, orderType, type, pair, price, price2,
                  volume, leverage, oflags, starttm, expiretm, userref, validate,
                  close_ordertype, close_price, close_price2, trading_agreement)

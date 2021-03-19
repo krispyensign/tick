@@ -10,44 +10,17 @@
 
 namespace kraken_exchange {
 
-#define docset(x) \
-  if(let opt = optional(x); opt != null)\
-    doc[#x] = opt.value()
-#define docsetspec(x, y) \
-  if(let opt = optional(y); opt != null)\
-    doc[#x] = opt.value()
-
-def add_order::serialize() -> str {
+def add_order::serialize() const -> str {
   // populate the document
   mutant doc = Document();
   doc.SetObject();
-  docset(event);
-  docset(token);
-  docset(event);
-  docset(token);
-  docset(reqid);
-  docset(orderType);
-  docset(type);
-  docset(pair);
-  docset(price);
-  docset(price2);
-  docset(volume);
-  docset(leverage);
-  docset(oflags);
-  docset(starttm);
-  docset(expiretm);
-  docset(userref);
-  docset(validate);
-  docsetspec(close[ordertype], close_ordertype);
-  docsetspec(close[price], close_price);
-  docsetspec(close[price2], close_price2);
-  docset(trading_agreement);
-
-  // setup the serialization context
-  mutant sb = StringBuffer();
-  mutant w = Writer(sb);
-  doc.Accept(w);
-  return sb.GetString();
+  docset(doc, event, token, reqid, orderType, type, pair, price, volume);
+  docsetopt(doc, reqid, price2, leverage, oflags, starttm, expiretm, userref,
+            validate, trading_agreement);
+  docsetoptspec(doc, close_ordertype, close[ordertype]);
+  docsetoptspec(doc, close_price, close[price]);
+  docsetoptspec(doc, close_price2, close[price2]);
+  return ::serialize(doc);
 }
 
 def create_tick_unsub_request() -> str {
@@ -94,10 +67,10 @@ def get_pairs_list() -> vec<str> {
   let obj = json_doc["result"].GetObject();
 
   // aggregate the wsnames of each pair to a vector of strings
-  return obj |
-         filter([](let &pair) { return pair.value.HasMember("wsname"); }) |
-         transform([](let &pair) { return pair.value["wsname"].GetString(); }) |
-         to<vec<str>>;
+  return obj
+    | filter([](let &pair) { return pair.value.HasMember("wsname"); })
+    | transform([](let &pair) { return pair.value["wsname"].GetString(); })
+    | to<vec<str>>;
 }
 
 def parse_tick(String msg_data) -> optional<pair_price_update> {
@@ -130,7 +103,7 @@ def parse_tick(String msg_data) -> optional<pair_price_update> {
 }
 
 def parse_order_event(String msg_data)
-    ->optional<var<add_order_status, cancel_order_status>> {
+    -> optional<var<add_order_status, cancel_order_status>> {
   // validate msg and if the msg is not an object and is missing either the
   // reqid id or event type then it is not an event and return empty
   let msg = make_json(msg_data);
