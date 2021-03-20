@@ -1,6 +1,6 @@
 #pragma once
 #include <zmq.hpp>
-#include "../base_types.hpp"
+#include "../common/base_types.hpp"
 
 using Context = std::shared_ptr<zmq::context_t>;
 namespace deps {

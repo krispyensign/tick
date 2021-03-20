@@ -31,7 +31,19 @@ find_package(Boost REQUIRED COMPONENTS random system thread filesystem chrono at
 ################################################################################
 add_compile_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
 add_link_options(-fno-omit-frame-pointer -fsanitize=address -Wall -g -Wextra -pedantic)
-file(GLOB TICK_SOURCE_FILES "src/*.cpp" "src/*.hpp" "src/deps/*.hpp")
+file(GLOB TICK_SOURCE_FILES
+  "src/common/*.hpp"
+  "src/common/*.cpp"
+
+  "src/deps/*.hpp"
+  "src/deps/*.cpp"
+
+  "src/tick/*.cpp"
+  "src/tick/*.hpp"
+
+  "src/orders/*.cpp"
+  "src/orders/*.hpp"
+)
 add_executable(tick ${TICK_SOURCE_FILES})
 target_include_directories(tick PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/ ${PC_LIBZMQ_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR} ${CPPRESTSDK_INCLUDE_DIR})
 

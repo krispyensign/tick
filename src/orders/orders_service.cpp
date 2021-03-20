@@ -1,20 +1,15 @@
-#include "base_types.hpp"
-#include "deps/logger.hpp"
-#include "deps/websocket.hpp"
-#include "deps/zero.hpp"
-#include "types.hpp"
+#include "../common/base_types.hpp"
+#include "../deps/logger.hpp"
+#include "../deps/websocket.hpp"
+#include "../deps/zero.hpp"
 
-#include "macros.hpp"
+#include "../common/macros.hpp"
 
 constexpr let default_timer = 100ms;
 
-def orders_service(
-  exchange_name ex_name,
-  AtomicBool is_running,
-  String ws_uri,
-  String work_bind,
-  String pub_bind
-) -> void {
+def orders_service(AtomicBool is_running, String ws_uri,
+                   String work_bind, String pub_bind)
+    -> void {
   let ctx = make_context(1);
   let worker = make_pull(ctx, work_bind);
   let publisher = make_publisher(ctx, pub_bind);

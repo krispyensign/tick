@@ -34,7 +34,6 @@ using currency = long double;
 template <typename T>
 using vec = std::vector<T, std::allocator<T>>;
 
-
 template <typename... Ts>
 using var = std::variant<Ts...>;
 

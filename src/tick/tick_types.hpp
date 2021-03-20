@@ -1,9 +1,9 @@
 #pragma once
 #include <msgpack.hpp>
 
-#include "base_types.hpp"
+#include "../common/base_types.hpp"
 
-#include "macros.hpp"
+#include "../common/macros.hpp"
 
 struct pair_price_update {
   str trade_name;
@@ -45,4 +45,4 @@ struct exchange_name {
     return null;
   };
 };
-#include "unmacros.hpp"
+#include "../common/unmacros.hpp"
