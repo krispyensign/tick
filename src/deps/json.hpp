@@ -8,7 +8,7 @@
 #include "../macros.hpp"
 
 using rapidjson::Document, rapidjson::Value, rapidjson::Writer,
-    rapidjson::StringBuffer, std::tuple, rapidjson::SizeType;
+    rapidjson::StringBuffer, std::tuple, rapidjson::SizeType, std::get;
 using str_lit = const char*;
 
 template <typename W>
