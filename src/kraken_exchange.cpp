@@ -5,22 +5,21 @@
 #include "deps/formatter.hpp"
 #include "deps/http.hpp"
 #include "deps/json.hpp"
+#include <tuple>
 
 #include "macros.hpp"
 
 namespace kraken_exchange {
+using std::tuple;
 
 def add_order::serialize() const -> str {
   // populate the document
-  mutant doc = Document();
-  doc.SetObject();
-  docset(doc, event, token, reqid, orderType, type, pair, price, volume);
-  docsetopt(doc, reqid, price2, leverage, oflags, starttm, expiretm, userref,
-            validate, trading_agreement);
-  docsetoptspec(doc, close_ordertype, close[ordertype]);
-  docsetoptspec(doc, close_price, close[price]);
-  docsetoptspec(doc, close_price2, close[price2]);
-  return ::serialize(doc);
+  return ::serialize(to_tuplestr(event, token, reqid, orderType, type, pair, price,
+                             volume, reqid, price2, leverage, oflags, starttm,
+                             expiretm, userref, validate, trading_agreement),
+                 tuple{"close[ordertype]", close_ordertype},
+                 tuple{"close[price]", close_price},
+                 tuple{"close[price2]", close_price2});
 }
 
 def create_tick_unsub_request() -> str {
@@ -68,8 +67,8 @@ def get_pairs_list() -> vec<str> {
 
   // aggregate the wsnames of each pair to a vector of strings
   return obj
-    | filter([](let &pair) { return pair.value.HasMember("wsname"); })
-    | transform([](let &pair) { return pair.value["wsname"].GetString(); })
+    | filter([](let& pair) { return pair.value.HasMember("wsname"); })
+    | transform([](let& pair) { return pair.value["wsname"].GetString(); })
     | to<vec<str>>;
 }
 
@@ -90,7 +89,7 @@ def parse_tick(String msg_data) -> optional<pair_price_update> {
   // validate the payload is a tick object
   let payload = publication[1].GetObject();
   if (not all_of(tick_members,
-                 [&payload](let &mem) { return payload.HasMember(mem); })) {
+                 [&payload](let& mem) { return payload.HasMember(mem); })) {
     return null;
   }
 
