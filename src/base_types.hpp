@@ -43,3 +43,6 @@ using Function = const function<T>&;
 
 template<typename T>
 using Vector = const vec<T>&;
+
+template<typename T>
+using Optional = const optional<T>&;

@@ -12,7 +12,7 @@ using rapidjson::Document, rapidjson::Value, rapidjson::Writer,
 using str_lit = const char*;
 
 template <typename W>
-inline def add_member(W& writer, str_lit tag, String data) -> void{
+inline def add_member(W& writer, str_lit tag, String data) -> void {
   writer.String(tag);
   writer.String(data.c_str(), static_cast<SizeType>(data.length()));
 }
@@ -30,7 +30,7 @@ inline def add_member(W& writer, str_lit tag, f64 data) -> void {
 }
 
 template <typename W, typename T>
-inline def add_member(W& writer, str_lit tag, const optional<T>& data) -> void {
+inline def add_member(W& writer, str_lit tag, Optional<T> data) -> void {
   if (data != null) {
     add_member(writer, tag, data.value());
   }
@@ -50,10 +50,10 @@ inline def serialize(T &&... args) -> str {
 
 inline def make_json(String data) -> Document {
   mutant doc = Document();
-    doc.Parse(data.c_str());
-    if (doc.HasParseError()) {
-      throw error("failed to parse: " + data);
-    }
+  doc.Parse(data.c_str());
+  if (doc.HasParseError()) {
+    throw error("failed to parse: " + data);
+  }
   return doc;
 }
 
