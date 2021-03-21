@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(MSGPACK_CXX17 ON)
 set(FMT_HEADER_ONLY ON)
-set(CMAKE_CXX_CPPCHECK cppcheck --enable=all --inconclusive --suppress=preprocessorErrorDirective --suppress=missingIncludeSystem --suppress=unmatchedSuppression --report-progress)
-set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,,clang-analyzer-*,-clang-analyzer-cplusplus*,bugprone-*,readability-*,concurrency-*,modernize-*,performance-*,portability-*)
+# set(CMAKE_CXX_CPPCHECK cppcheck --enable=all --inconclusive --suppress=preprocessorErrorDirective --suppress=missingIncludeSystem --suppress=unmatchedSuppression --report-progress)
+# set(CMAKE_CXX_CLANG_TIDY clang-tidy -checks=-*,,clang-analyzer-*,-clang-analyzer-cplusplus*,bugprone-*,readability-*,concurrency-*,modernize-*,performance-*,portability-*)
 set(cpprestsdk_DIR /usr/lib/${CMAKE_LIBRARY_ARCHITECTURE}/cmake/)
 
 ################################################################################
@@ -40,9 +40,6 @@ file(GLOB TICK_SOURCE_FILES
 
   "src/tick/*.cpp"
   "src/tick/*.hpp"
-
-  "src/orders/*.cpp"
-  "src/orders/*.hpp"
 )
 add_executable(tick ${TICK_SOURCE_FILES})
 target_include_directories(tick PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/third_party/ ${PC_LIBZMQ_INCLUDE_DIRS} ${OPENSSL_INCLUDE_DIR} ${BOOST_INCLUDE_DIR} ${CPPRESTSDK_INCLUDE_DIR})

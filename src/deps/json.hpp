@@ -11,8 +11,10 @@ inline def make_json(String data) -> rapidjson::Document {
   }
   return doc;
 }
-template<typename... T>
 
+namespace json {
+template<typename... T>
 def serialize(T &&... args) -> str;
+}
 
 #include "../common/unmacros.hpp"

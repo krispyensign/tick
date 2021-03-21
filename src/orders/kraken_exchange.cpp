@@ -14,7 +14,7 @@ using std::tuple;
 
 def add_order::serialize() const -> str {
   // populate the document
-  return ::serialize(
+  return json::serialize(
       to_tuplestr(event, token, reqid, orderType, type, pair, price, volume,
                   reqid, price2, leverage, oflags, starttm, expiretm, userref,
                   validate, trading_agreement),

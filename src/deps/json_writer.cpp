@@ -7,6 +7,7 @@
 
 #include "../common/macros.hpp"
 
+namespace json {
 using rapidjson::Document, rapidjson::Value, rapidjson::Writer,
     rapidjson::StringBuffer, std::tuple, rapidjson::SizeType, std::get;
 using str_lit = const char*;
@@ -46,4 +47,5 @@ def serialize(T &&... args) -> str {
    ...);
   w.EndObject();
   return sb.GetString();
+}
 }
