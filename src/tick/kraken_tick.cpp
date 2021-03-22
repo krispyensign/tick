@@ -10,6 +10,9 @@
 #include "../common/macros.hpp"
 
 namespace kraken_exchange {
+constexpr let api_url = "https://api.kraken.com";
+constexpr let assets_path = "/0/public/AssetPairs";
+constexpr let tick_members = {"a", "b", "c", "v", "p", "t", "l", "h", "o"};
 
 def create_tick_unsub_request() -> str {
   return R"EOF(

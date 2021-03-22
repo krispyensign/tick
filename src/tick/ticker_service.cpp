@@ -7,66 +7,73 @@
 
 #include "../common/macros.hpp"
 #include "zmq.hpp"
+#include <cpprest/ws_client.h>
+#include <cpprest/ws_msg.h>
 #include <memory>
 
 namespace ticker_service {
-using std::shared_ptr;
-constexpr let default_timer = 10ms;
 
-def select_exchange(exchange_name ex) -> exchange_interface {
-  switch (ex.inner) {
-    EXCHANGE_INF_CASE(kraken)
+auto tick_service(exchange_name ex_name, String zbind, AtomicBool is_running) -> void {
+  // attempt to get the available pairs for websocket subscription
+  constexpr const auto default_timer = 10ms;
+  auto exi = [](exchange_name ex) -> exchange_interface {
+    switch (ex.inner) {
+      EXCHANGE_INF_CASE(kraken)
     default:
       throw error("unrecognized exchange");
-  };
-}
-
-def tick_service(
-  exchange_name ex_name,
-  String zbind,
-  AtomicBool is_running
-) -> void {
-  // attempt to get the available pairs for websocket subscription
-  let exi = ticker_service::select_exchange(ex_name);
-  let pair_result = exi.get_pairs_list();
-  logger::info("got pairs");
+    };
+  }(ex_name);
 
   // setup publisher
-  let ctx = make_shared<context_t>(1);
-  let publisher = make_shared<socket_t>(*ctx, socket_type::pub);
-  publisher->bind(zbind);
+  auto ctx = context_t(1);
+  auto publisher = socket_t(ctx, socket_type::pub);
+  publisher.bind(zbind);
   logger::info("socket bound");
 
-  // start websocket and setup callback for incoming messages
-  let wsock = make_websocket(exi.ws_uri);
-  let subscription = exi.create_tick_sub_request(pair_result);
-  wsock->send(subscription);
-  logger::info("subscription sent: {}", subscription);
-  wsock->set_message_handler(
-    [&](WebSocketIncomingMessage data) {
+  auto wsock = websocket_callback_client();
+  wsock.connect(exi.ws_uri).get();
+  const auto sub_req = exi.create_tick_sub_request(exi.get_pairs_list());
+  logger::info("got pairs");
+
+  auto ws_send = [=](String data) mutable -> void {
+    auto envelope = websocket_outgoing_message();
+    envelope.set_utf8_message(data);
+    logger::info("created outmsg");
+    try {
+      wsock.send(envelope);
+    } catch(Exception e) {
+      logger::error("Failed to send for some reason :( {}", e.what());
+      throw;
+    }
+  };
+
+  wsock.set_message_handler([&](WebSocketIncomingMessage data) mutable -> void {
     if (is_running) {
-      let msg = data.extract_string().get();
-      if (let update = exi.parse_event(msg); update != null) {
-        publisher->send(zmq::message_t(Encoder::encode(update.value())), zmq::send_flags::dontwait);
-      } else {
+      const auto msg = data.extract_string().get();
+      if (const auto update = exi.parse_event(msg); update != null)
+        publisher.send(zmq::message_t(Encoder::encode(update.value())),
+                        zmq::send_flags::dontwait);
+      else
         logger::info(msg);
-      }}}
-    );
-  logger::info("callback setup. waiting for shutdown");
+    }
+  });
+  logger::info("callback setup.");
+
+  ws_send(sub_req);
+  logger::info("sent pairs");
 
   // loop until ctrl-c or forever
-  while (is_running) {
-    this_thread::sleep_for(default_timer);
-  }
+  logger::info("waiting for shutdown.");
+  while (is_running) this_thread::sleep_for(default_timer);
   logger::info("got shutdown signal");
 
   // stop the work vent first
-  wsock->send(exi.create_tick_unsub_request());
+  ws_send(exi.create_tick_unsub_request());
   this_thread::sleep_for(default_timer);
 
   // then stop the sink
-  publisher->close();
-  ctx->shutdown();
+  publisher.close();
+  ctx.shutdown();
   logger::info("shutdown complete");
 }
-}  // namespace ticker_service
+} // namespace ticker_service
